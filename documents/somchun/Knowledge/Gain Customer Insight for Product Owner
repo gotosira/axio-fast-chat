@@ -1,0 +1,234 @@
+# Gain Customer Insight for Product Owner  
+
+---
+
+## Morning Session: Data-Driven Decision Making
+
+### Product Life Cycle Stages
+
+1. **Introduction** – High cost, low profit, awareness phase  
+   _e.g., Apple Vision Pro, New EV models_
+2. **Growth** – High demand, growing competition  
+   _e.g., Samsung Galaxy, Bubble Tea_
+3. **Maturity** – Saturated market, focus on retention  
+   _e.g., Hybrid cars, Coca-Cola_
+4. **Decline** – Falling sales, need for strategy shift  
+   _e.g., iPod, Compact Digital Cameras_
+
+---
+
+### Customer Centricity
+
+#### Case: Nokia's Decline
+- Failed to adapt to user needs post-iPhone launch
+- Used outdated Symbian vs iOS/Android
+- Lost market share from 40% to 3%
+
+#### Case: Shopee Thailand
+- Focused on user behavior via analytics
+- Features like Shopee Live, Shopee Guarantee
+- Surpassed Lazada with campaigns and buyer-seller alignment
+
+---
+
+### Data-Driven Product Development Cycle
+
+1. **Collect relevant data**
+2. **Analyze for improvement**
+3. **Apply findings**
+4. **Iterate continuously**
+
+#### Example Data Sources
+
+- Transaction & Purchase Data
+- Demographics
+- Web/App Analytics
+- Social Sentiment
+- IoT Sensor Data
+
+#### Real Example
+
+> Feedback: "Highlight selected item more clearly."
+> Action: Color adjustment in UI
+
+---
+
+## Data Analysis and Interpretation
+
+### Key Concepts for PO
+
+- **Setting OKRs/KPIs**
+- **Choosing key metrics**
+- **Using appropriate tools**
+
+### Examples of Metrics
+
+| Metric | Description | Tool |
+|--------|-------------|------|
+| **CSAT** | Customer satisfaction % | Google Forms |
+| **NPS** | % willing to recommend | Google Forms |
+| **Conversion Rate** | Visitor → User % | Google Analytics |
+| **Retention Rate** | % users returning | Google Analytics |
+| **Churn Rate** | % users dropped | Google Analytics |
+| **Referral Rate** | % from referrals | Google Analytics |
+| **CAC** | Cost per acquired user | Google Analytics |
+| **Feature Adoption** | % using new feature | Google Analytics |
+
+---
+
+### Sample OKRs
+
+**Objective:** Grow app sustainably  
+- KR1: New users → 10K to 50K  
+- Metric: Conversion Rate  
+- Tool: Google Analytics  
+- Action: A/B Test different versions
+
+- KR2: Churn Rate → 20% to 10%  
+- Action: Analyze feedback and reduce pain points
+
+---
+
+### Group Activity
+
+Define OKRs + Metrics + Tools for your own product:
+- Metrics: CSAT, Churn, Retention, Adoption
+- Tools: Usability Test, Google Analytics, NPS, A/B Testing
+
+---
+
+## Common Data Pitfalls
+
+- **Misinterpretation** – Inadequate sample size in A/B Test
+- **Bias** – Survey only power users
+- **Wrong Timeframe** – Promotion periods skew metrics
+
+---
+
+## Cohort & Retention
+
+### Definitions
+
+- **Cohort** = Users starting in the same period
+- **Retention** = % returning users over time
+
+### Benefits
+
+1. Understand behavior by group
+2. Test feature effectiveness
+3. Drive sustainable growth
+4. Inform retention strategy
+
+---
+
+### Cohort Analysis Example
+
+- **Jan Cohort**: Poor retention → investigate onboarding issues
+- **Feb Cohort**: Better retention → new feature helped?
+
+---
+
+## Correlation vs Causation
+
+| Correlation | Causation |
+|-------------|-----------|
+| Ice cream sales & summer heat | Hot weather causes ice cream sales |
+| Time in app ↑ = good? | Maybe UX confusion, not satisfaction |
+| Complaints ↑ = dissatisfaction? | Maybe more user engagement |
+
+---
+
+## Afternoon Session: Leveraging Data for Growth
+
+### User Journey vs Funnel
+
+- **Journey**: Full experience path (e.g., Awareness → Advocacy)
+- **Funnel**: Sequential action steps toward a goal
+
+### Journey Mapping Use Cases
+
+- Discovery → Understand current vs ideal state
+- Grooming → Prioritize backlog
+- After user test → Compare before vs after
+- Goal setting → Connect to funnel drop-offs
+
+---
+
+## AARRR Model (Pirate Metrics)
+
+| Stage | Focus |
+|-------|-------|
+| **Acquisition** | Attract users (ads, social, SEO) |
+| **Activation** | First key action (signup, view) |
+| **Retention** | Return usage (DAU, MAU) |
+| **Referral** | Sharing with others |
+| **Revenue** | Monetization (subscriptions, upsells) |
+
+---
+
+### B2C Case Study: Netflix
+
+| AARRR Stage | Example |
+|-------------|---------|
+| Acquisition | Ads → Clicks on YouTube |
+| Activation | Watch full episode |
+| Retention | Continue Watching feature |
+| Referral | In-app sharing |
+| Revenue | Subscriptions via personalized pricing |
+
+---
+
+### B2B Case Adaptation
+
+- Focus on **organizations** not individual users
+- Track onboarding, full journey completion
+- Add pre-funnel education stage
+
+#### Sample Feature: Custom Dashboard
+- Goal: Increase Retention Rate
+- Tools: GA tagging, usage monitoring
+
+---
+
+## A/B Testing & Experimentation
+
+### Framework
+
+1. Form hypothesis
+2. Set metrics
+3. Segment users
+4. Develop, test, monitor
+5. Analyze results
+6. Roll out or iterate
+
+---
+
+### Case Studies
+
+- **KFC**: Added “Best Seller” tag → +3.18% CTA
+- **Netflix**: Changed cover images → +14% viewership
+- **HubSpot**: Improved hero image → +375 signups/month
+
+---
+
+## Communicating Data to Stakeholders
+
+Use:
+
+- **Funnels + Journey Maps** for visuals
+- **Key metrics**: Drop-off, MAU, Cost-Benefit
+- **Storytelling**: Justify roadmap decisions
+
+---
+
+## Closing Framework: TIP
+
+- **T**est – Does anyone want it?
+- **I**deas – Can we build it better than others?
+- **P**ivot – Is the market big enough?
+
+---
+
+---
+
+Thank you!

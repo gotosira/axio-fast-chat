@@ -1,0 +1,225 @@
+﻿Empty state 
+Empty state is used to communicate with users about empty results displayed in a web page or application. This should mention causes of result and how to solve the problems to make the user journey thoroughly.
+#Empty state type 1: Empty search results
+##Contexts 
+* When users search for something and don’t find what they’re looking for
+* When users search for something and it doesn’t match the results in the database system.
+##Principles
+* Indicate the results with clear and concise
+* Mention what users have to do in the next step
+##Samples
+###th
+####Sample 1
+* Title: ไม่พบข้อมูลที่ค้นหา
+* Description: กรุณาค้นหาด้วยคำอื่น คำใกล้เคียง หรือติดต่อศูนย์ช่วยเหลือ
+####Sample 2
+* Title: ไม่พบข้อมูลที่ค้นหา
+* Description: ผลการค้นหาไม่ตรงกับข้อมูลที่มี กรุณาค้นหาด้วยคำอื่น Filter จากคำใกล้เคียง หรือติดต่อศูนย์ช่วยเหลือ
+####Sample 3
+* Title: ขออภัย ไม่พบข้อมูล
+* Description: ผลการค้นหาไม่ตรงกับข้อมูลที่มี กรุณาค้นหาด้วยคำอื่น Filter จากคำใกล้เคียง หรือติดต่อศูนย์ช่วยเหลือ
+###en:
+####Sample 1
+* Title: No results found
+* Description: Please try adjusting search or filter similar wording. Or contact the Help Center.
+####Sample 2
+* Title: Search not match!
+* Description: Your search does not match any documents. Please try adjusting search or filter what you are looking for. Or contact the Help Center.
+####Sample 3
+* Title: File not found!
+* Description: Please try adjusting search or filter what you are looking for. Or contact the Help Center.
+####Sample 4
+* Title: Sorry, search not found
+* Description: Your search does not match any documents. Please try adjusting search or filter what you are looking for. Or contact the Help Center.
+
+
+
+
+
+
+#Empty state type 2: Initial empty state
+##Contexts
+* When users start using a platform for the first time, and some feature webpage might not have the data to show.
+* Users never used some functions before, such as file uploading, email sending etc. So, there’s no activity in the system to show.
+##Principles
+* Mention what and how the current state is.
+* Explain what page/feature is
+* Encourage users to take an action to make progress or some activities in the platform.
+* CTA is optional in some cases.
+##Samples 
+###th
+####Sample 1 - When users never used the message feature or sent email before.
+* Title: คุณยังไม่มีข้อความใหม่
+* Description: เชื่อมต่อและทำงานร่วมกับทุกคนง่าย ๆ จัดการแผนงานทุกอย่าง ครบ จบ ที่นี่ที่เดียว เริ่มต้นใช้งานเลย!
+####Sample 2 - When users haven’t added any item.
+* Title: ยังไม่มีรายการสั่งซื้อ
+* Description: เลือกซื้อสินค้าใหม่ ระดับพรีเมียมในราคาจับต้องได้ทุกวัน รับประกันคุณภาพทุกชิ้น สั่งซื้อที่นี่!
+###en
+####Sample 1 - When users never used the message feature or sent email before.]
+* Title: You have no new message
+* Description: Easily connect and work with your partners, you can manage overall plan and tasks all-in-one here. Get Started!
+####Sample 2 - When users haven’t added any item.
+* Title: No order yet
+* Description: You can explore new premium-grade goods at reasonable prices everyday, quality guaranteed. Order here!
+#Empty state type 3: No data available
+##Contexts 
+* When the database is temporarily interrupted.
+* When users never update or upload anything in the platform.
+##Principles
+* Mention what and how the current state is.
+* Tell users what or how to do the next step.
+##Samples
+###th
+####Sample 1 - When the database is temporarily interrupted.
+* Title: ไม่มีข้อมูล
+* Description: กรุณาเลือกฐานข้อมูลอื่น ลองอีกครั้ง
+####Sample 2 - When the database is temporarily interrupted.
+* Title: ไม่พบหน้าที่ค้นหา
+* Description: เกิดข้อผิดพลาดในการเข้าถึงข้อมูล กรุณาตรวจสอบขั้นตอนก่อนหน้านี้ ลองอีกครั้ง
+####Sample 3 - When the database is temporarily interrupted.
+* Title: เกิดข้อผิดพลาดบางอย่าง
+* Description: คุณยังไม่สามารถดำเนินการต่อได้ตอนนี้ กรุณาลองอีกครั้งภายหลัง หรือติดต่อศูนย์ช่วยเหลือด้านเทคนิค (IT)
+####Sample 4 - When users never update or upload anything on the platform.
+* Title: ยังไม่มีข้อมูล
+* Description: คุณยังไม่เคยอัปโหลดไฟล์เอกสารมาก่อน กรุณาอัปโหลดข้อมูล
+###en
+####Sample 1 - When the database is temporarily interrupted.
+* Title: No data available
+* Description: Please select another site. Try again.
+####Sample 2 - When the database is temporarily interrupted.
+* Title: The page can’t be reached
+* Description: There’s some error in data accessibility. Please check the previous step. Try again.
+####Sample 3 - When the database is temporarily interrupted.
+* Title: Unknown error has occurred
+* Description: Your request cannot proceed at this time. Please try again later or contact the Technical support team.
+####Sample 4 - When users never update or upload anything in the platform. 
+* Title: Empty space
+* Description: No documents have been added yet. Please upload data.
+
+
+#Empty state 4: No internet connection/No permission
+##Contexts 
+* When the internet connection issues have occurred.
+* When users can’t access or don’t have authorization to access the database.
+##Principles
+* Indicate the results with clear and concise
+* Mention what users have to do in the next step
+##Samples
+###th
+####Sample 1 - When the internet connection issues have occurred.
+* Title: ไม่มีสัญญาณอินเตอร์เน็ต
+* Description: กรุณาตรวจสอบสัญญาณเครือข่ายและอุปกรณ์เชื่อมต่ออินเทอร์เน็ต ลองอีกครั้ง
+###Sample 2 - When the internet connection issues have occurred.
+* Title: เชื่อมต่อเครือข่ายไม่ได้
+* Description: กรุณาตรวจสอบสัญญาณเครือข่ายและอุปกรณ์เชื่อมต่ออินเทอร์เน็ต ลองอีกครั้ง
+####Sample 3 - When the internet connection issues have occurred. 
+* Title: ไม่พบสถานที่ที่ค้นหา
+* Description: กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต และสัญญาณเครือข่ายอีกครั้ง ลองอีกครั้ง
+####Sample 4 - When users can’t access or don’t have authorization to access the database.
+* Title: คุณยังไม่สามารถใช้งานได้
+* Description: กรุณาติดต่อแอดมิน เพื่อขอสิทธิ์เข้าถึงการใช้งาน
+
+
+###en
+####Sample 1 - When the internet connection issues have occurred.
+* Title: No internet connection
+* Description: Please check your devices and internet connection. Try again.
+####Sample 2 - When the internet connection issues have occurred.
+* Title: Network disconnected
+* Description: Please check your devices and internet connection. Try again.
+####Sample 3 - When the internet connection issues have occurred. 
+* Title: No place found
+* Description: Please check internet connection, and reconnect to the network. Try again.
+####Sample 4 - When users can’t access or don’t have authorization to access the database.
+* Title: Access needed
+* Description: Please ask administration for your access permissions.
+
+
+#Empty state type 5: Informative situation
+##Contexts
+* To inform users about general information or service announcements, such as application update,   transportation real time status, service policies, download-upload state, technical issues, authentication, and how-to.
+##Principles
+* Mention what current happen
+* Suggest users what or how to do in the next step
+* Communicate clearly and concisely.
+##Samples
+###th
+####Sample 1 - To inform users about application update.
+* Title: อัปเดตแอปฯ ตอนนี้!
+* Description: หากต้องการใช้งานแอปพลิเคชันนี้ กรุณาดาวน์โหลดเวอร์ชันล่าสุดก่อน เพื่อเข้าใช้งานฟีเจอร์ใหม่ อัปเดตเลย!
+####Sample 2 - To inform users about transportation real time status. 
+* Title: มุ่งหน้าไปยังจุดหมาย
+* Description:  สินค้าของคุณอยู่ระหว่างจัดส่ง ใช้เวลาประมาณ 1 วัน จะส่งถึงผู้รับ
+####Sample 3 - To inform users about Service policies.
+* Title: ประกาศนโยบายความเป็นส่วนตัว
+* Description: เว็บไซต์นี้ใช้งานคุกกี้เพื่อเก็บข้อมูลคุณ มาปรับใช้บริการที่เป็นประโยชน์ กรุณาอ่าน นโยบายความเป็นส่วนตัว เพื่อพิจารณาให้ความยินยอมหรือปฏิเสธการเก็บข้อมูลดังกล่าว
+####Sample 4 - To inform users about Service policies.
+* Title: ข้อกำหนดการใช้งาน
+* Description: ระบบได้ปรับเปลี่ยนข้อกำหนดการใช้งาน ซึ่งครอบคลุมเรื่องการนำข้อมูลของคุณไปใช้ และความปลอดภัยของการใช้บริการ กรุณาอ่าน ข้อกำหนดการใช้งาน เพื่อรับทราบและทำความเข้าใจเพิ่มเติม
+####Sample 5 - To inform users about Service policies.
+* Title: อยู่ระหว่างปรับปรุง
+* Description: ขออภัย หน้าเว็บไซต์อยู่ระหว่างปรับปรุงระบบ และจะกลับมาเปิดให้บริการภายหลัง กลับไปยังหน้าแรก
+####Sample 6 - To inform users about download-upload state.
+* Title: กำลังโหลดข้อมูล
+* Description: กรุณารอสักครู่ ขณะนี้อยู่ระหว่างโหลดข้อมูล เพื่อแสดงผลบนเว็บไซต์
+####Sample 7 - To inform users about download-upload state.
+* Title: อัปเดตเฟิร์มแวร์ตอนนี้
+* Description: คุณสามารถอัปเดตเฟิร์มแวร์ตัวใหม่ได้แล้ว เพื่อเข้าใช้งานฟีเจอร์เวอร์ชันล่าสุด ต้องการ ติดตั้งตอนนี้ หรือ อัปเดตภายหลัง
+####Sample 8 - To inform users about technical issues.
+* Title: เกิดข้อผิดพลาด
+* Description: ระบบไม่สามารถดำเนินการต่อได้ เพราะเกิดข้อผิดพลาดบางอย่าง กรุณาลองอีกครั้งภายหลัง หรือติดต่อศูนย์ช่วยเหลือด้านเทคนิค (IT)
+####Sample 9 - To inform users about technical issues.
+* Title: คุณไม่ได้ทำรายการตามเวลาที่กำหนด
+* Description: กรุณาลองอีกครั้งภายหลัง
+####Sample 10 - To inform users about authentication.
+* Title: ยืนยันรหัส OTP
+* Description: ระบบได้ส่งรหัส OTP ไปยังหมายเลขโทรศัพท์ xxxxxxx กรุณาใส่รหัสดังกล่าว เพื่อยืนยันความถูกต้อง หรือขอรหัส OTP ใหม่อีกครั้ง ภายใน x นาที
+####Sample 11 - To inform users about authentication.
+* Title: เข้าใช้งานด้วยคีย์พาส
+* Description: คีย์พาสช่วยยืนยันตัวตนผู้ใช้งานได้ดียิ่งขึ้น คุณสามารถสร้างคีย์พาส เพื่อเข้าใช้งานเว็บไซต์นี้ผ่านอุปกรณ์ต่าง ๆ ได้ สร้างคีย์พาส
+####Sample 12 - To inform users about authentication.
+* Title: ระบุรหัสผ่าน
+* Description: กรุณาระบุตัวเลขวันเกิดของคุณในรูปแบบ “วว/ดด/ปปปป” เพื่อใช้เป็นรหัสผ่าน (เช่น หากเกิดวันที่ 2 ธันวาคม ปี ค.ศ. 1990 รหัสผ่านจะเป็น 02121990)
+####Sample 13 - To inform users about how-to.
+* Title: ค้นหาสถานที่
+* Description: กรุณาระบุชื่อสถานที่หรือทำเลใกล้เคียง เพื่อค้นหาสถานที่ที่ต้องการ
+###en
+####Sample 1 - To inform users about application update.
+* Title: App update required!
+* Description: To use the application, please download the application with the latest features version. Update now!
+####Sample 2 - To inform users about transportation real time status. 
+* Title: Heading to destination
+* Description:  Your passage is on the way. It is 1 day until arrival.
+####Sample 3 - To inform users about Service policies.
+* Title: Privacy policies updated
+* Description: The site uses cookies to ensure you get the best experience. Please review Privacy policies to understand them more. And decide to accept or deny the policies.
+####Sample 4 - To inform users about Service policies.
+* Title: Terms and conditions updated
+* Description: We’ve made the update of terms and conditions, including the use of your information and safety and security service usage. Please review Terms and conditions to understand them more.
+####Sample 5 - To inform users about Service policies.
+* Title: Under maintenance
+* Description: Sorry, the page is currently under maintenance, and will be back soon. Go back to the homepage.
+####Sample 6 - To inform users about download-upload state.
+* Title: App is loading…
+* Description: Please wait, the site is in progress of loading information.
+####Sample 7 - To inform users about download-upload state.
+* Title: Firmware update - required!
+* Description: The new firmware update is available. Please update the firmware to ensure you use the latest version. Install now or update later.
+####Sample 8 - To inform users about technical issues.
+* Title: Something went wrong!
+* Description: There's an unexpected error. Please try again later or contact the Technical Support team.
+####Sample 9 - To inform users about technical issues.
+* Title: Your sessions have expired!
+* Description: Please try again later.
+####Sample 10 - To inform users about authentication.
+* Title: Validate OTP
+* Description: The OTP has been sent to the number xxxxxxx, please enter the OTP code to verify your authentication. Or request for another OTP later in x minutes.
+####Sample 11 - To inform users about authentication.
+* Title: Sign in with Passkey
+* Description: Passkey strengthens the authentication. You can use a passkey to sign in the account on all devices. Create a passkey.
+####Sample 12 - To inform users about authentication.
+* Title: Password required
+* Description: Please specify your date of birth in the format of “dd/mm/yyyy” (Ex., Your birthday is December 02, 1990, your password is 02121990)
+####Sample 13 - To inform users about how-to.
+* Title: Search location
+* Description: Please specify the name of place or area to find the location.

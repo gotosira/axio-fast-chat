@@ -1,0 +1,258 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 1) Core tokens (light) */
+:root {
+  /* Brand */
+  --color-brand: #0969da;
+  /* GitHub Blue */
+  --color-brand-600: #0550ae;
+  --color-brand-700: #033d8b;
+
+  /* Surfaces (light) */
+  --surface-0: #ffffff;
+  --surface-1: #f6f8fa;
+  /* GitHub light gray */
+  --surface-2: #eaeef2;
+  --surface-3: #d0d7de;
+
+  /* Text (light) */
+  --text-strong: #1f2328;
+  /* GitHub black */
+  --text-primary: #24292f;
+  --text-secondary: #57606a;
+  --text-muted: #8c959f;
+
+  /* Borders & overlays */
+  --border: #d0d7de;
+  --overlay-8: rgba(31, 35, 40, 0.08);
+  --overlay-12: rgba(31, 35, 40, 0.12);
+
+  /* Feedback */
+  --success: #1a7f37;
+  --warning: #9a6700;
+  --danger: #cf222e;
+
+  /* Focus */
+  --focus-ring: #0969da;
+
+  /* Typography */
+  --font-sans: "IBM Plex Sans Thai", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --fs-sm: 0.875rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.125rem;
+  --lh-normal: 1.5;
+}
+
+/* 2) Dark overrides (GitHub Dark Default) */
+.dark,
+:root[data-theme="dark"] {
+  /* Surfaces */
+  --surface-0: #0d1117;
+  /* Canvas Default */
+  --surface-1: #161b22;
+  /* Canvas Subtler */
+  --surface-2: #21262d;
+  /* Canvas Inset */
+  --surface-3: #30363d;
+
+  /* Text */
+  --text-strong: #f0f6fc;
+  --text-primary: #c9d1d9;
+  /* FG Default */
+  --text-secondary: #8b949e;
+  /* FG Muted */
+  --text-muted: #6e7681;
+
+  /* Borders */
+  --border: #30363d;
+  /* Border Default */
+  --overlay-8: rgba(240, 246, 252, 0.08);
+  --overlay-12: rgba(240, 246, 252, 0.12);
+
+  /* Brand */
+  --color-brand: #58a6ff;
+  /* Accent FG */
+  --color-brand-600: #1f6feb;
+  --color-brand-700: #388bfd;
+
+  /* Feedback */
+  --success: #3fb950;
+  --warning: #d29922;
+  --danger: #f85149;
+
+  --focus-ring: #58a6ff;
+}
+
+/* 3) Semantic aliases */
+:root {
+  --bg-app: var(--surface-0);
+  --bg-panel: var(--surface-1);
+  --bg-card: var(--surface-0);
+  /* Cards often white in light mode */
+  --bg-hover: var(--surface-2);
+  --bg-active: var(--surface-3);
+
+  --fg-strong: var(--text-strong);
+  --fg-primary: var(--text-primary);
+  --fg-secondary: var(--text-secondary);
+  --fg-muted: var(--text-muted);
+
+  --border-weak: var(--border);
+  --border-strong: var(--text-muted);
+
+  --btn-bg: var(--surface-1);
+  --btn-fg: var(--text-primary);
+  --btn-border: var(--border-weak);
+
+  --btn-primary-bg: var(--success);
+  /* GitHub uses green for primary actions usually, but we keep brand blue for generic */
+  --btn-primary-fg: #ffffff;
+  --btn-primary-hover: var(--color-brand-600);
+  --btn-primary-active: var(--color-brand-700);
+
+  --input-bg: var(--surface-0);
+  --input-fg: var(--text-primary);
+  --input-placeholder: var(--text-muted);
+  --input-border: var(--border-weak);
+  --input-focus-ring: var(--focus-ring);
+
+  --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-2: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  --ring-focus: 0 0 0 2px var(--focus-ring);
+
+  /* Chat Specifics */
+  --chat-user-bubble: #E0F2FE;
+  /* Light Sky Blue */
+  --chat-user-fg: #0969da;
+  /* Brand Blue text */
+  --chat-ai-bubble: transparent;
+  --chat-ai-fg: var(--text-primary);
+  --chat-timestamp: var(--text-muted);
+}
+
+.dark {
+  --bg-card: var(--surface-1);
+  /* Cards match panel in dark mode usually */
+  --btn-primary-fg: #ffffff;
+  --chat-user-bubble: #1f6feb;
+  --chat-user-fg: #ffffff;
+}
+
+/* 4) Base element mapping (works with Tailwind utility classes layered on top) */
+@layer base {
+
+  html,
+  body {
+    background: var(--bg-app);
+    color: var(--fg-primary);
+    font-family: var(--font-sans);
+  }
+}
+
+/* Tailwind prose invert mapping */
+.prose {
+  --tw-prose-body: var(--fg-primary);
+  --tw-prose-headings: var(--fg-strong);
+  --tw-prose-lead: var(--fg-secondary);
+  --tw-prose-links: var(--color-brand);
+  --tw-prose-bold: var(--fg-strong);
+  --tw-prose-hr: var(--border-weak);
+  --tw-prose-quotes: var(--fg-primary);
+  --tw-prose-quote-borders: var(--border-weak);
+  --tw-prose-captions: var(--fg-muted);
+  --tw-prose-kbd: var(--fg-primary);
+  --tw-prose-kbd-shadows: color-mix(in oklab, var(--fg-primary) 12%, transparent);
+  --tw-prose-code: var(--fg-primary);
+  --tw-prose-pre-code: var(--fg-secondary);
+  --tw-prose-pre-bg: var(--surface-3);
+  --tw-prose-th-borders: var(--border-weak);
+  --tw-prose-td-borders: var(--border-weak);
+}
+
+.dark .prose {
+  --tw-prose-invert-body: var(--fg-primary);
+  --tw-prose-invert-headings: var(--fg-strong);
+  --tw-prose-invert-links: var(--color-brand);
+  --tw-prose-invert-bold: var(--fg-strong);
+  --tw-prose-invert-hr: var(--border-weak);
+  --tw-prose-invert-quotes: var(--fg-primary);
+  --tw-prose-invert-quote-borders: var(--border-weak);
+  --tw-prose-invert-captions: var(--fg-muted);
+  --tw-prose-invert-code: var(--fg-primary);
+  --tw-prose-invert-pre-code: var(--fg-secondary);
+  --tw-prose-invert-pre-bg: color-mix(in oklab, var(--surface-3) 92%, black 8%);
+  --tw-prose-invert-th-borders: var(--border-weak);
+  --tw-prose-invert-td-borders: var(--border-weak);
+}
+
+/* Compact View Overrides */
+.compact-view .message-row {
+  @apply mb-2 !important;
+}
+
+.compact-view .message-bubble {
+  @apply py-1.5 px-3 text-sm !important;
+}
+
+.compact-view .message-bubble .prose {
+  @apply text-sm leading-snug !important;
+}
+
+.compact-view .message-bubble .prose p {
+  @apply my-1 !important;
+}
+
+/* Dark Mode Scrollbar (Optional polish) */
+.dark ::-webkit-scrollbar-track {
+  @apply bg-neutral-900;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  @apply bg-neutral-700 rounded-full;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  @apply bg-neutral-600;
+}
+
+/* Hide scrollbar for horizontal carousel */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari and Opera */
+}
+
+/* --- New Styles for Summary Pill and Image Cards --- */
+
+/* Summary Pill (Blue Pill) */
+.summary-pill {
+  @apply bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-4 py-2 rounded-full font-medium inline-block mb-4 text-sm border border-blue-200 dark:border-blue-800;
+}
+
+/* Image Card Container (for side-by-side images) */
+.image-card-container {
+  @apply flex gap-4 overflow-x-auto pb-2 mb-4 scrollbar-hide;
+}
+
+/* Individual Image Card */
+.image-card {
+  @apply flex-shrink-0 rounded-xl overflow-hidden border border-border-weak bg-card shadow-sm hover:shadow-md transition-shadow cursor-pointer;
+  width: 280px;
+  /* Fixed width for cards */
+}
+
+.image-card img {
+  @apply w-full h-40 object-cover;
+}
+
+.image-card-caption {
+  @apply p-3 text-xs text-text-secondary truncate;
+}

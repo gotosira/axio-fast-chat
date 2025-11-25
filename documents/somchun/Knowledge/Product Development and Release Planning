@@ -1,0 +1,388 @@
+# Product Development and Release Planning
+
+## Agenda
+
+- Product Development  
+- Release Planning  
+- Prioritization Framework  
+- Risk Assessment & Continuous Improvement  
+- Product Metrics  
+- Validate Product Assumption  
+
+---
+
+## Product Development Methodology
+
+### Waterfall Development Framework
+
+1. Define problem scope and strategy  
+2. Investigate problem to define requirements (what)  
+3. Design solution (how)  
+4. Implement the design  
+5. Test the solution  
+6. Improve based on feedback or environment  
+
+### Agile Development Framework
+
+- Iterative sprint-based delivery  
+- Embraces change, suited for complex work  
+- Team delivers working software every sprint  
+
+### Agile vs Waterfall Comparison
+
+| Waterfall | Agile |
+|-----------|-------|
+| Sequential delivery | Continuous delivery |
+| Fixed requirements | Flexible and adaptive |
+| End-loaded testing | Ongoing testing |
+| Centralized planning | Collaborative ownership |
+
+---
+
+## Agile Overview
+
+### Agile Manifesto
+
+- Individuals and interactions over processes and tools  
+- Working software over comprehensive documentation  
+- Customer collaboration over contract negotiation  
+- Responding to change over following a plan  
+
+### Role of Product Manager
+
+- Communicate feature priorities  
+- Remove blockers for the team  
+- Test and iterate based on user feedback  
+
+---
+
+## Agile Building Blocks
+
+- **Epic**: Work too large for one sprint  
+- **PBI**: Work deliverable in one sprint, with MD estimation  
+- **Frameworks**: Scrum, Kanban, XP, SAFe  
+
+---
+
+### Scrum Ceremonies
+
+1. Sprint Planning  
+2. Daily Standup  
+3. Backlog Refinement  
+4. Sprint Review  
+5. Sprint Retrospective  
+
+---
+
+## Agile Metrics
+
+- **Velocity**: Work completed per sprint  
+- **Burndown Chart**: Tracks sprint progress  
+
+### Case: Sansiri Agile Success
+
+- Cross-functional squads (e.g., HR, IT, Marketing)  
+- 12 squads managing 3 high-rise projects  
+- Increased collaboration and efficiency  
+
+---
+
+## Kanban Overview
+
+- Visual board with task status  
+- WIP (Work in Progress) limits  
+- Continuous flow, no sprints  
+
+---
+
+## Agile Workshop
+
+**Objective**: Pass ball for maximum points  
+
+**Rules**:
+
+1. No passing to adjacent people  
+2. Score when ball touches all hands  
+3. Use hands only  
+4. Ball must have airtime  
+
+3 Rounds: Planning → Doing (2 mins each)
+
+---
+
+## Validate Product Assumption
+
+### From Assumptions to Hypotheses
+
+- **Problem**: Hard to pay → Avoid app  
+- **Hypothesis**: Simplify payment → More usage  
+- **Features**:
+  - Add multiple credit cards  
+  - Default payment method  
+  - Payment split  
+  - PromptPay QR  
+
+---
+
+## Working with Prototypes
+
+**Purpose**:
+- Communicate ideas  
+- Iterate quickly  
+- Align team  
+- Validate assumptions  
+
+---
+
+## Working with MVPs
+
+**Definition**: Minimum viable product is the least work that yields max learning
+
+**When to build what**:
+
+| Now | Later |
+|-----|-------|
+| Critical features | Nice-to-have features |
+| Validate assumptions | Lower-risk ideas |
+| Manual processes OK | Automation comes later |
+
+---
+
+## Definition of Done
+
+| Item | Description |
+|------|-------------|
+| Epic | Large work body, broken down |
+| PBI | Sprint-sized, business-value task |
+
+**AXONS Standard PBI**:
+
+1. Clear goal  
+2. Acceptance criteria  
+3. Linked to Epic  
+4. Includes estimation  
+
+---
+
+## Release Planning
+
+### Three Questions
+
+1. What value do we create?  
+2. What resources do we need?  
+3. When can it be delivered?  
+
+**Agile Triangle**:
+- Focus on **Must-Have** only  
+- Avoid **Scope Creep**  
+- Use team capacity wisely  
+
+---
+
+### Phase Planning Example
+
+**Phase 1 (MVP)**:
+- Online menu  
+- Ordering  
+- Payment  
+- Notification  
+- Admin  
+
+**Phase 2 (Growth)**:
+- Promotion  
+- Reviews  
+- Loyalty  
+- Chatbot  
+- Delivery Integration  
+
+---
+
+### Effort Estimation Tools
+
+- **T-Shirt Sizing**  
+- **Story Points**  
+- Prioritization: MoSCoW, RICE, DICE  
+- Align cost to effort (Dev, QA, Ops, Training)
+
+---
+
+## Feature Prioritization
+
+### MoSCoW Method
+
+| Must-Have | Should-Have | Could-Have | Won’t-Have |
+|-----------|-------------|------------|------------|
+| Critical | Important | Nice to have | Not in this release |
+
+### Other Tools
+
+- 2x2 Matrix  
+- Stack Ranking  
+- Eisenhower Matrix (Urgent vs Important)  
+- BCG Matrix (Stars, Cash Cows, Dogs, Question Marks)  
+
+---
+
+## RICE Framework
+
+| Component | Description |
+|-----------|-------------|
+| Reach | Monthly affected users |
+| Impact | Business value (1-5) |
+| Confidence | Certainty (%) |
+| Effort | Required resources |
+
+**Formula**:  
+- (Reach × Impact × Confidence) / Effort
+
+---
+
+## DICE Framework
+
+| DICE | Description |
+|------|-------------|
+| Dominance | Who is requesting? |
+| Impact | Benefit to business |
+| Confidence | Feasibility |
+| Effort | Time & resources |
+
+**Why use it**:
+- Allocate resources smartly  
+- Remove team bias  
+- Align stakeholders  
+
+---
+
+## Risk Assessment & Mitigation
+
+> "If you fail to plan, you are planning to fail."
+
+**Risk Levels**: Very Low → Very High  
+**Factors**:
+- Control vs Uncontrollable  
+- Technology, People, Change, Project  
+
+**5x5 Risk Matrix** for evaluation
+
+---
+
+## Continuous Improvement: AXONS PDCA
+
+Plan → Do → Check → Act
+
+Group activity: Assess risk using 5x5 matrix and propose mitigation
+
+---
+
+## Discovery Approaches
+
+| Formal Discovery | Continuous Discovery |
+|------------------|----------------------|
+| Pre-dev research | Ongoing insight gathering |
+| Time/resource heavy | Lightweight and iterative |
+| Clear scope | Flexible scope |
+
+---
+
+### Case Studies
+
+- **GrabMart (Formal)**:  
+  - Research + pilot testing  
+  - COVID-era demand validation  
+
+- **GrabMart (Continuous)**:  
+  - A/B Testing  
+  - Heatmaps  
+  - UX experiments  
+
+---
+
+## Assumption → Hypothesis → Validation
+
+- Everything starts as an assumption  
+- Hypothesis = measurable version  
+- Validation = A/B Test, Data, Interviews  
+
+---
+
+## Feedback Collection
+
+| Type | Methods |
+|------|---------|
+| Direct | Surveys, Analytics, A/B Testing |
+| Indirect | Social listening, Ideas portal, Fake door tests |
+
+**B2B Tip**: Focus on decision makers; use Customer Success strategy
+
+---
+
+## Product Metrics
+
+> "If you cannot measure it, you cannot improve it." – Peter Drucker
+
+### Good Metric Qualities
+
+- Aligned with goals  
+- Actionable  
+- Understandable  
+- Comparable  
+
+---
+
+## Metric Types by AARRR
+
+### Acquisition
+
+- Bounce Rate  
+- CPA, CPC, CTR  
+- Cost Per Mile (CPM)
+
+### Activation
+
+- Conversion Rate  
+- Time to Value (TTV)  
+- First-Time Conversion Rate  
+
+### Retention
+
+- Churn Rate  
+- Retention Rate  
+- Product Adoption  
+
+### Referral
+
+- Customer Referral Rate (CRR)  
+- Referral Conversion Rate  
+- NPS (Net Promoter Score)
+
+### Revenue
+
+- ARPA  
+- CLV (Customer Lifetime Value)  
+- MRR / ARR  
+
+### Engagement
+
+- DAU / MAU  
+- Stickiness  
+- CSAT / CES  
+- Feature usage  
+
+---
+
+## Google HEART Framework
+
+- **H**appiness  
+- **E**ngagement  
+- **A**doption  
+- **R**etention  
+- **T**ask Success  
+
+### Examples
+
+| App | Type |
+|-----|------|
+| Netflix | Content Streaming |
+| Spotify | Music |
+| Line | Messaging |
+| Google Maps | Navigation |

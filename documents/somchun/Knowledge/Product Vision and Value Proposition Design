@@ -1,0 +1,185 @@
+# Product Vision and Value Proposition Design
+
+## Facilitators
+
+- **Knot Patchares Santivijai** – PO Manager (Back Office & Finance)
+- **Nongporn Treamtrakanpon** – PO (FOOD)
+- **Pap Supajak Thamwongsa** – Product Strategist, Product CoE
+
+---
+
+## Agenda
+
+1. Understanding Value Proposition and JTBD
+2. Value Proposition Canvas
+3. Creating and Maintaining Product Vision
+4. Differentiation and Competitive Analysis
+5. OKR Framework
+6. Product Roadmap
+
+---
+
+## Understanding Value Proposition and JTBD
+
+### Jobs to Be Done (JTBD)
+
+- **Functional Jobs**: What customers are trying to accomplish
+- **Emotional Jobs**: How customers want to feel
+- **Social Jobs**: How customers want to be perceived
+
+### JTBD Template
+
+> "When [situation], I want to [job], so I can [expected outcome]"
+
+---
+
+## Value Proposition Canvas
+
+Use the Value Proposition Canvas to align product features to customer needs, jobs, pains, and gains.
+
+### Case Study: Airbnb
+
+[Insert practical workshop content as needed]
+
+---
+
+## Creating and Maintaining Product Vision
+
+### Hierarchy
+
+| Company Level | Product Level |
+|---------------|----------------|
+| Mission, Vision, Values | Product Vision |
+| Objectives & Key Results | How value will be created |
+| Themes | Problems to solve |
+| Features & Solutions | What will be built |
+
+### A Good Product Vision
+
+- States the main goal of the product
+- Clarifies the problem being solved
+- Defines value delivered to users
+
+---
+
+## Product Vision Board Components
+
+| Element | Description |
+|--------|-------------|
+| **Target Group** | Who are the primary users (e.g., students, professionals) |
+| **Pain Points** | e.g., boring online learning, lack of feedback |
+| **Product Value** | How the product solves the pain |
+| **Key Features** | e.g., personalized feedback, AI-based course recommendations |
+| **Business Goals & KPIs** | e.g., 20% premium signups, $10M revenue in 3 years |
+| **Market Trends** | e.g., EdTech growing at 16% CAGR to 2030 |
+| **Competitors** | e.g., Coursera, Udemy |
+| **Competitive Advantage** | e.g., AI personalization, real-time engagement |
+| **Revenue Streams** | Pay-per-course, B2B partnerships |
+| **Cost Factors** | Dev cost, outsourcing, marketing |
+
+---
+
+## Differentiation and Competitive Analysis
+
+### Why Do Competitive Research?
+
+- Identify standard features and best practices
+- Learn how others solve problems
+- Discover innovation opportunities
+- Uncover unmet customer needs
+- Avoid reinventing the wheel
+
+### Types of Competitors
+
+1. **Direct** – Offer same product to same customers
+2. **Indirect** – Substitutes or similar offerings
+3. **Complementary** – Products that enhance yours
+
+---
+
+## Where to Find Competitive Data
+
+1. **Online research** – Sites, blogs, reviews
+2. **Use competitor’s product**
+3. **Talk to users**
+4. **Attend trade shows and conferences**
+
+---
+
+## Comparison Matrix
+
+| Feature | Your Product | Competitor A | Competitor B |
+|--------|--------------|--------------|--------------|
+| Feature 1 | ✓ | ✓ | ✗ |
+| Feature 2 | ✗ | ✓ | ✓ |
+| UX | Excellent | Good | Poor |
+
+---
+
+## OKR Framework
+
+### Structure
+
+- **Objective (O)**: Bold, inspirational goal
+- **Key Results (KR)**: Measurable outcomes
+
+#### Example OKRs
+
+**Objective:** Increase user engagement
+
+- KR1: Increase avg. session time from 10 to 25 mins
+- KR2: Grow DAUs by 12%
+- KR3: Launch 3 UX improvements from competitor research
+
+### OKR vs KPI
+
+| OKRs | KPIs |
+|------|------|
+| For growth and transformation | For operational performance |
+| Aspirational | Baseline performance |
+| Change-focused | Ongoing tracking |
+
+---
+
+## OKR Example (Shopee)
+
+| Objective | Key Results |
+|-----------|-------------|
+| Justify beta launch | - 50 signups by Mar 31<br>- 200 emails collected<br>- 25 referrals with discount |
+| App pays for itself in 1 year | - $10K subscriptions Q3<br>- 100 referrals<br>- $25K subscriptions Q4 |
+
+---
+
+## Product Roadmap and Stakeholder Needs
+
+### Product Roadmap Definition
+
+A strategic document that communicates the product vision, priorities, and delivery path.
+
+### Characteristics of a Good Roadmap
+
+- Not a project plan
+- Focused on **needs**, not just features
+- Based on **outcomes**, not just output
+- Continuously adaptable
+
+### Who's Involved?
+
+- **PO/PO Manager** – Align teams
+- **BP/Customers** – Input & feedback
+- **Squad/UX** – Feasibility and dependencies
+- **Executives/DM** – Strategic alignment
+
+---
+
+## Roadmap Structure
+
+| Timeline | Themes | Features | OKRs |
+|----------|--------|----------|------|
+| Q1       | Onboarding | Guided intro flow | KR1, KR2 |
+| Q2       | Engagement | Personalized dashboard | KR3 |
+| Q3       | Retention | Smart notifications | KR4 |
+
+---
+
+Thank you!

@@ -1,0 +1,200 @@
+# Managing Product Backlog and Requirement  
+
+---
+
+## Backlog Management & Sprint Planning
+
+### Strategy → OKRs → Product Roadmap
+
+- Align product with company vision and strategy
+- Example: “Organize the world’s information” → Search Engine, Google Maps, etc.
+- Focus on speed, performance, and accessibility
+
+### Recap: OKR
+
+- Starts from “Why → How → What”
+- Vision = destination, OKR = goal and measurement
+
+### Recap: Product Roadmap
+
+- A quarterly plan (by sprint or milestone) showing features and epics
+- Helps align Tech, Business, and Stakeholders
+
+### Recap: Backlog
+
+> “A good backlog isn’t just a task list — it should answer: *Why are we doing this?*”
+
+- Structure: Epic → User Story → Task
+- One single source of truth
+- Avoid confusion, duplication, and wasted effort
+- Balance multiple work types:
+  - ✅ Feature = New work  
+  - 🐛 Bug fix = Fix issues  
+  - 🔧 Technical debt = Code improvement  
+  - 📘 Knowledge = Research, spikes, POCs  
+
+---
+
+## Creating High-Quality PBIs
+
+### INVEST Criteria
+
+- **I**ndependent: Testable without blockers  
+- **N**egotiable: Adjustable based on info  
+- **V**aluable: Delivers clear value  
+- **E**stimable: Can be estimated  
+- **S**mall: Small enough for a sprint  
+- **T**estable: Clear criteria for QA  
+
+### Azure Backlog Format (Example)
+
+- Header: `[Process][Feature]`
+- Sections:
+  - Product Metrics
+  - Goal
+  - Persona / Role
+  - Requirement (via User Flow)
+  - State
+  - Iteration
+
+---
+
+## Sprint Goal
+
+- Set during planning, reviewed post-sprint
+- Add summary to “Details” field
+- Log problems or urgent work as needed
+
+---
+
+## Team Capacity
+
+- Input per person availability + leave  
+- Shared leave → use “Team day off”  
+- Use capacity to guide commitment during planning  
+
+---
+
+## Product Backlog Item Structure
+
+### User Flow
+
+- Describe the flow clearly
+- Use diagrams, Figma links, and requirements per step
+
+### UI Design
+
+- Add finalized Figma link
+- Include annotated screenshots
+- Add external content links if any
+
+### Acceptance Criteria
+
+- Detail use cases per PBI
+- Add test scenarios in comments or links (e.g., image from Figma)
+
+---
+
+## Related Work
+
+- **Parent Link**: Epic or Feature  
+- **Child Link**:  
+  - Yellow = Dev/QA task (with effort)  
+  - Green = QA scenario (no effort)  
+  - Red = Bug (quick fix, no effort)  
+- **Related Link**: Supporting tasks (e.g., UI prep)
+
+---
+
+## Detail Effort (Task Level)
+
+- Set **Estimate Effort** before planning ends  
+- **Remaining Effort** auto-fills from estimate  
+- Log **Actual Effort** after completion  
+
+---
+
+## Prioritization and Backlog Management
+
+> “Not all work is equally important.”
+
+**Why Prioritize?**
+- Better resource allocation  
+- Create time to focus on what matters  
+- Avoid being reactive  
+
+### Prioritization Factors
+
+1. Level of Effort (LoE)  
+2. Business Value  
+3. Customer Value  
+
+---
+
+## Prioritization Methods
+
+| Method | Description |
+|--------|-------------|
+| Value/Effort Score | Rank by benefit vs dev cost |
+| Weighted Scoring | Assign weight to key criteria |
+| DICE | Combines Dominance, Impact, Confidence, Effort |
+| MoSCoW | Must, Should, Could, Won’t have |
+
+### DICE Formula:
+- DICE Score = (Dominance × Impact × Confidence) / Effort
+
+---
+
+## Sprint Planning & Dashboard
+
+- Track sprint in Azure board  
+- Sprint Goal, capacity, effort
+
+### PO Survey
+
+- [Menti Survey](https://www.menti.com/alw3dwpe4yg4)
+
+---
+
+## Burndown Chart
+
+| Color | Meaning |
+|-------|---------|
+| Orange Line | Total Scope |
+| Blue Area | Remaining Work |
+| Gray Line | Ideal Trend |
+
+### Analysis
+
+🧠 Issues:
+- Scope increased mid-sprint  
+- Tasks not closed  
+
+💡 Tips:
+- Lock scope early  
+- Trade-off urgent items  
+- Improve planning accuracy  
+
+---
+
+## IT Service Management (ITSM Dashboard)
+
+[AXONS Project Portfolio](https://cpfito365.sharepoint.com/sites/AxonsProjectPortfolio)
+
+| View | Description |
+|------|-------------|
+| Project Status | Ongoing projects |
+| Sprint Progress | Team velocity and progress |
+| Ranking | Member contribution |
+| Burndown Chart | Sprint delivery health |
+
+---
+
+## Technical Debts 🔍
+
+> “Technical debt is the future cost of quick solutions today.”
+
+- Incomplete infra, rushed delivery = slow future work
+
+[SonarQube Dashboard](https://sonarqube.cpf.co.th)
+

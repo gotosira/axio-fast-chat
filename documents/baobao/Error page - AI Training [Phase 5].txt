@@ -1,0 +1,138 @@
+﻿Error page 
+Error page is the page which informs users about technical problems. This might be shown as standard error code or HTTP Status code to indicate server responses. There are two types of error code: Error 4xx and Error 5xx 
+#Error 4xx
+Error 4xx is to indicate error happened from users or the error can be solved by users. 
+##Contexts
+* When users send a malformed request, the server can’t understand the request, such as invalid format or missing parameter. (Error 400 - Bad request) 
+* When users are unauthenticated or provide incorrect credentials. (Error 401 - Unauthorized)
+* When users request something, servers deny it because of access rights limitations. (Error 403 - Forbidden) 
+* When users input the wrong URL for a website. (Error 404 - Not found)
+* When users request something that server can’t return a response because of criteria unmatch. (Error 406 - Not acceptable)
+* When users take too long to send the request in the specific time session. (Error 408 - Request timeout)
+* When users send too many requests in a given time period until server overload. (Error 429 - Too many requests)
+##Principles
+* Inform users what happens and how to do with clear and concise
+* Communicate in neutral, not blame or mention it as mistakes
+##Samples
+###th
+####Sample 1 - Error 400 Bad request
+* Title: คำร้องขอผิดพลาด
+* Description: ขออภัย คำร้องขอไม่ถูกต้อง ขณะพยายามเข้าถึง URL นี้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตการตั้งค่าระบบ หรือลองอีกครั้ง
+
+
+####Sample 2 - Error 401 Unauthorized
+* Title: ไม่สามารถดำเนินการได้
+* Description: ขออภัย ข้อมูลผู้ใช้งานไม่ถูกต้อง หรือไม่สามารถระบุตัวตนได้ กรุณาตรวจสอบข้อมูล หรือล็อกอินใหม่อีกครั้ง
+
+
+####Sample 3 - Error 403 Forbidden
+* Title: ไม่สามารถเข้าถึงได้
+* Description: คุณไม่ได้รับอนุญาตให้เข้าถึงหน้านี้ กรุณาตรวจสอบสิทธิ์การเข้าถึง
+
+
+####Sample 4 - Error 404 Not found
+* Title: URL  ไม่ถูกต้อง
+* Description: ขออภัย ไม่พบข้อมูลในเซิร์ฟเวอร์นี้ กรุณาเปลี่ยนชื่อ URL หรือลองใหม่อีกครั้ง
+
+
+####Sample 5 - Error 406 Not acceptable
+* Title: เซิร์ฟเวอร์ไม่สามารถให้บริการคำขแนี้
+* Description: ขออภัย ระบบไม่สามารถตอบสนองคำร้องขอนี้ได้ กรุณาล้างแคชและคุกกี้เบราว์เซอร์ของคุณ หรือลองใหม่อีกครั้ง
+
+
+####Sample 7 - Error 408 Request timeout
+* Title: คำขอหมดเวลา
+* Description: คุณทำรายการเกินระยะเวลาที่กำหนด กรุณาตรวจสอบ URL และเชื่อมต่อใหม่อีกครั้ง
+
+
+####Sample 8 - Error 429 Too many requests
+* Title: คำขอมากเกินไป
+* Description: เซิร์ฟเวอร์ขัดข้อง เนื่องจากผู้ใช้งานส่งคำขอมากเกินไป กรุณาลองอีกครั้งในภายหลัง
+
+
+###en
+####Sample 1 - Error 400 Bad request
+* Title: The page isn’t working
+* Description: Sorry, an error occurred while accessing this URL. Please check your internet connection, system settings or try again.
+
+
+####Sample 2 - Error 401 Unauthorized
+* Title: Unauthorized access
+* Description: Sorry, the user information isn’t correct or identifiable. Please check your details and try logging in again.
+
+
+####Sample 3 - Error 403 Forbidden
+* Title: Access denied
+* Description: Sorry, the request couldn’t be processed because of invalid credentials. Please check your access permission.
+
+
+####Sample 4 - Error 404 Not found
+* Title: Invalid URL
+* Description: The request page isn’t found on this server.  Please check your URL or return to the home page.
+
+
+####Sample 5 - Error 406 Not acceptable
+* Title: Not acceptable
+* Description: Sorry, the request isn’t acceptable on this server. Please clear the browser's cache and cookies or try again later.
+
+
+####Sample 7 - Error 408 Request timeout
+* Title: Request timeout
+* Description: Sorry, your browser didn’t send a complete request in time. Please check your URL and try again later.
+
+
+####Sample 8 - Error 429 Too many requests
+* Title: Too many requests
+* Description: Sorry, too many requests  received. Please try again later.
+
+
+#Error 5xx 
+Error 5xx is to indicate an error occurred from server or technical issues that users can’t solve by themselves.
+##Contexts
+* When the server can’t process the result or fulfill the request because of unexpected conditions. (Error 500 - Internal server error)
+* When a server receives an invalid response from an upstream server. (Error 502 - Bad gateway)
+* When a server is temporarily unable to handle the request resulting from different causes, such as overload working in server or server is under maintenance. (Error 503 - Server unavailable)
+* When the server doesn’t receive a timely response from the upstream server. (Error 504 - Gateway timeout)
+##Principles
+* Inform users what happens and how to do with clear and concise
+* Communicate in neutral.
+* For technical or specialist users, jargon terms with error code is acceptable, such as Error 400 Bad request, or Error 500 Internal server error.
+##Samples
+###th
+####Sample 1 - Error 500 Internal server error
+* Title: เกิดข้อผิดพลาด
+* Description: ขออภัย เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์ กรุณาลองอีกครั้งในภายหลัง
+
+
+####Sample 2 - Error 502 Bad gateway
+* Title: เซิร์ฟเวอร์ขัดข้องชั่วคราว
+* Description: เครือข่ายเซิร์ฟเวอร์ขัดข้องชั่วคราว กรุณาเชื่อมต่ออีกครั้ง หรือล้างแคชและคุกกี้เบราว์เซอร์ของคุณ
+
+
+####Sample 3 - Error 503 Server unavailable
+* Title: เซิร์ฟเวอร์ไม่พร้อมใช้งาน
+* Description: ขออภัย เรากำลังแก้ไขเซิร์ฟเวอร์ให้กลับมาใช้งานได้เร็ว ๆ นี้ กรุณาเชื่อมต่ออีกครั้งในภายหลัง
+
+
+####Sample 4 - Error 504 Gateway time out
+* Title: เกตเวย์หมดเวลา
+* Description: ขออภัย ไม่มีการตอบสนองจากเซิร์ฟเวอร์ภายในระยะเวลาที่กำหนด กรุณาลองอีกครั้งในภายหลัง
+###en
+####Sample 1 - Error 500 Internal server error
+* Title: Server error
+* Description: Sorry, an internal server error has occurred. Please try again later.
+
+
+####Sample 2 - Error 502 Bad gateway
+* Title: Server error
+* Description: Sorry, the server ran into a temporary error and couldn't finish the request. Please refresh the page or clear the browser's cache and cookies.
+
+
+####Sample 3 - Error 503 Server unavailable
+* Title: Server unavailable
+* Description: Sorry, we're working on fixing the server and it will be back soon Please try again later.
+
+
+####Sample 4 - Error 504 Gateway timeout
+* Title: Gateway timeout
+* Description: Sorry, The server didn't respond in time. Please try again later.

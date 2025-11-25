@@ -1,0 +1,66 @@
+﻿Tooltips 
+Tooltips is to guide users how to do in their user journey, it might be used to explain some features or platform guidelines. When using tooltips, UX/UI designers should consider the guideline below:
+1. When to explain additional details, use tooltips icon (!) or (i)
+2. When you answer what it is about, use the tooltips icon (?)
+#Tooltips type 1: onboarding/ product tours
+##Contexts
+* When to introduce new users to explore the overall platform.
+##Principles
+* Explain what the feature is, what function is about, and how to use it.
+* The CTA button is optional.
+##Samples
+###th
+####Sample 1
+* Title: เริ่มต้นบันทึกรายการสำคัญ
+* Description: บริหารจัดการเกี่ยวกับรายการข้าวต่าง ๆ ได้ โดยบันทึกรายละเอียดประเภทข้าว โรงงานที่ตั้ง เลข Queuing ID และข้อมูลสำคัญอื่น ๆ เพิ่มเติม
+####Sample 2
+* Title: เพิ่มรายชื่อพนักงานใหม่ 
+* Description: คุณสามารถเพิ่มรายชื่อพนักงานเข้าบัญชีได้แล้ว คลิกเพื่อเพิ่มรายชื่อใหม่
+###en
+####Sample 1
+* Title: Create a new list!
+* Description: Manage your new list by recording rice types, factory location, Queuing ID number, and other important information and notes.
+####Sample 2
+* Title: Add employee
+* Description: Add a few employees to your account. Click here to add them.
+#Tooltips type 2: help/warning
+##Contexts
+* When to warn or guide users what to to.
+##Principles
+* Mention what to do or main idea as title.
+* Suggest what to do in a list or bullet point. Or explain in brief and clear.
+* The CTA button is optional.
+##Samples
+###th
+####Sample 1
+* Title: วิธีถ่ายภาพ
+* Description: 
+   * นำกล้องถ่ายจุดที่สงสัยว่าพืชมีอาการป่วย
+   * โฟกัสภาพให้อยู่กึ่งกลาง โดยให้เห็นรอยโรคชัดเจน
+   * กดภาพถ่าย เพื่อส่งเข้าระบบ
+####Sample 2
+* Text: ดูแจ้งเตือนและจัดการการตั้งค่า
+###en
+####Sample 1
+* Title: Photo tips
+* Description: 
+   * Bring a phone or camera to take a photo.
+   * Focus the center of the thing to make the spot clearly.
+   * Take the shot, and the photo is sent to the system.
+####Sample 2
+* Text: View notifications and manage settings
+#Tooltips type 3: update/reminders
+##Contexts
+* When to announce a new feature.
+##Principles
+* Mention what new feature or announcement is about as title.
+* Explain details about what it’s new, how it affects, and what users can do.
+##Samples
+###th
+####Sample
+* Title: อัปเดตการตั้งค่า!
+* Description: คุณสามารถตั้งค่าขั้นตอน Recruiting เชื่อมต่อกับอุปกรณ์อื่นได้แล้ว โดยอัปเดตการตั้งค่าเมนูนี้
+###en
+####Sample
+* Title: New! Setting update
+* Description: Now, you can set the recruiting processes by integrating with other devices. Please update the HR Connect settings to set your working location.

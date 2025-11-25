@@ -1,0 +1,79 @@
+﻿Placeholder
+Placeholder is to guide users to correctly fill the field. This might be considered for omission in some cases. UX/UI designers can omit the text message in placeholder when the main idea of the message is similar to headline or when it doesn’t have additional details.
+#Placeholder type 1: to ask question 
+##Contexts 
+* When to write a message in a more conversational and friendly way.
+* When to write guiding messages in general topics, such as food, flight, informal search.
+##Samples
+###th
+####Sample 1
+* Text input: คุณต้องการหมายเลขอะไร
+####Sample 2
+* Text input: อีเมลของคุณคืออะไร
+####Sample 3
+* Text input: คุณกำลังมองหาเที่ยวบินไหนอยู่
+###en
+####Sample 1
+* Text input: What number are you looking for?
+####Sample 2
+* Text input: What’s your email?
+####Sample 3
+* Text input: What flight are you looking for?
+#Placeholder type 2: to categorize
+##Contexts
+* When to categorize or scope keyword search properly
+* When the case is specific or has to input complicated text.
+##Samples
+###th
+####Sample 1
+* Text input: หมายเลขเอกสาร
+####Sample 2
+* Text input: หมายเลขคำสั่งซื้อ
+####Sample 3
+* Text input: หมายเลขอ้างอิงการชำระเงิน
+###en
+####Sample 1
+* Text input: Document number
+####Sample 2
+* Text input: PO number
+####Sample 3
+* Text input: payment ref number
+#Placeholder type 3: to give an example
+##Contexts
+* When to give some examples to make it clear how to search.
+* When the case is specific or has to input complicated text.
+##Samples
+###th
+####Sample 1
+* Text input: เช่น DOC0001
+####Sample 2
+* Text input: somsak1111@axonstech.com
+####Sample 3
+* Text input: เช่น 25/11/2025
+###en
+####Sample 1
+* Text input: e.g. DOC00001
+####Sample 2
+* Text input: e.g. somsak1111@axonstech.com
+####Sample 3
+* Text input: e.g. 25/11/2025
+#Placeholder type 4: to suggest an approach 
+##Contexts
+* When to explain how to search or specify the main keyword in the search box.
+##Samples
+###th
+
+
+####Sample 1
+* Text input: กรุณาพิมพ์รหัสเอกสาร
+####Sample 2
+* Text input: ค้นหาหมายเลขใบสั่งซื้อ
+####Sample 3
+* Text input: จองเที่ยวบินในและต่างประเทศ
+###en
+####Sample 1
+* Text input: Type document code
+####Sample 2
+* Text input: Search for PO number
+####Sample 3
+* Text input: Book domestic and international flight

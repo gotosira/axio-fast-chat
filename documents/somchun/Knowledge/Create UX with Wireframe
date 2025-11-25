@@ -1,0 +1,196 @@
+# Create UX with Wireframe Workshop  
+
+## Objective
+
+Learn to translate business requirements into clear wireframes for development teams and stakeholders.
+
+
+---
+
+## UX vs UI Design
+
+### UX (User Experience)
+
+- Focus: Ease, intuitiveness, and overall usability
+- Process: Understanding user needs, journey mapping
+
+### UI (User Interface)
+
+- Focus: Visual layout and interactive components
+- Role: Makes interfaces aesthetically pleasing and usable
+
+**Relationship**:  
+UX = Structure, research, flow  
+UI = Visual and interaction design  
+
+---
+
+## Importance of Intuitive UI
+
+### Norman Doors Example
+
+| Behavior | Percentage |
+|----------|------------|
+| Pull wrong side | 60% |
+| Embarrassment | 30% |
+| Correct first time | 10% |
+
+---
+
+## UI Design Principles
+
+### Consistency & Clarity
+
+- Uniform styles (colors, fonts, icons)  
+- Predictable components  
+- Clear CTAs and layouts  
+- Eliminate clutter
+
+### Hierarchy & Accessibility
+
+- Highlight important items (size, contrast)  
+- Keyboard-friendly, screen-reader support  
+- Readable fonts and clear structure  
+- System feedback (loading, selection)
+
+---
+
+## Eight Principles of Information Architecture (Dan Brown)
+
+1. **Objects** – Treat content as living entities  
+2. **Choices** – Limit options to reduce overwhelm  
+3. **Disclosure** – Show only what's needed at each step  
+4. **Exemplars** – Use examples to clarify categories  
+5. **Front Doors** – Users may enter from any point  
+6. **Multiple Classification** – Offer varied browsing paths  
+7. **Focused Navigation** – Keep related items grouped  
+8. **Growth** – Design to scale
+
+---
+
+## Wireframe Fundamentals
+
+### What is a Wireframe?
+
+- **Alignment Tool**: Aligns stakeholders early  
+- **Design Blueprint**: UI layout before visual design  
+- **Focus on Layout**: Not colors or images
+
+Source: [Sketch](https://www.sketch.com/blog/wireframe-examples/)
+
+---
+
+## Benefits of Wireframing
+
+- Align team early (avoid scope creep)  
+- Visualize features & navigation  
+- Stay user-centered  
+- Quick and inexpensive changes  
+
+---
+
+## Key Wireframe Components
+
+| Component | Description |
+|----------|-------------|
+| Header & Logo | Brand identity section at top |
+| Navigation | Sidebar or top menu for structure |
+| Content Areas | Placeholder blocks for actual content |
+| Inputs & Controls | Buttons, dropdowns, form fields |
+| Footer (Hi-Fi) | Optional; links or contact info |
+
+Download template: [sneakpeekit.com](https://sneakpeekit.com)
+
+---
+
+## Wireframe Fidelity Levels
+
+| Level | Description |
+|-------|-------------|
+| Low-Fidelity | Sketchy, block shapes, for ideation |
+| Mid-Fidelity | Accurate spacing, grayscale, clarity |
+| High-Fidelity | Pixel-accurate mockups or clickable prototypes |
+
+---
+
+## Wireframing Tools for PO
+
+| Tool | Strength |
+|------|----------|
+| **Paper & Pencil** | Fastest for brainstorming |
+| **Whiteboard & Sticky Notes** | No tech, rearrangeable |
+| **Figma** ([figma.com](https://www.figma.com)) | Real-time collaboration |
+| **Balsamiq** ([balsamiq.com](https://balsamiq.com)) | Non-designer friendly |
+| **Miro** ([miro.com](https://miro.com)) | Infinite canvas, templates |
+| **Wireframe.cc** ([wireframe.cc](https://wireframe.cc)) | Simple interface |
+| **Whimsical** ([whimsical.com](https://whimsical.com)) | Browser-based, focused |
+
+---
+
+## Case Study – Agricultural App (B2B)
+
+**Users**: Farmers and Buyers  
+**Screens**: Dashboard, Crop Management, Product Listings, Order Management  
+**Insights**:
+- Weather and inventory data = top priority  
+- Designers improved layout post-wireframe  
+
+Source: [Vicky Maulana](https://vicky-maulana.medium.com/designing-effective-ui-ux-for-agricultural-apps-implementing-best-practices-and-usability-f16e0f9fc2f3)
+
+---
+
+## Case Study – HR/Payroll Dashboard
+
+**Users**: HR managers, Employees  
+**Screens**: Payroll summaries, Leave status  
+**Insights**:
+- Highlighted financial clarity  
+- Wireframe drove early agreement on data layout  
+
+Source: [Chreator Medium](https://medium.com/@chreator/paybuddy-revolutionizing-payroll-and-hr-management-ux-case-study-c8950b7daa30)
+
+---
+
+## Case Study – Logistics Dashboard
+
+**Users**: Warehouse managers, Planners  
+**Screens**: Order Tracking, Maps, Inventory  
+**Outcome**:
+- Clarified feature priorities early  
+- Dashboard became intuitive  
+
+Sources:  
+- [Eleven Space](https://www.eleven-space.com/case-studies/delivery-pro)  
+- [Avibisram Portfolio](https://avibisram.com/portfolio-item/delivery-pro/)
+
+---
+
+## Best Practices – Stakeholder Alignment
+
+- **Sketch Early**: Start in kickoff meetings  
+- **Visual Consensus**: Align non-technical stakeholders  
+- **Prevent Scope Creep**: Early agreement on structure  
+- **Team Alignment**: Unified understanding
+
+---
+
+## Best Practices – Iteration & Feedback
+
+- Review often with teams or users  
+- Use paper or low-fi for early testing  
+- Stay flexible and revise as needed  
+- Track changes for documentation  
+
+---
+
+## Best Practices – Handoff & Consistency
+
+- Annotate components (e.g., “dropdown - select country”)  
+- Use layout grids or templates  
+- Export design specs from tools like Figma or Sketch  
+- Create screen-to-requirement maps  
+
+Source: [Adobe XD Ideas](https://xd.adobe.com/ideas/process/wireframing/benefits-of-annotating-wireframes/)
+
+
+

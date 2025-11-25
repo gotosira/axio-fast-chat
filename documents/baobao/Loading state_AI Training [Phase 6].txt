@@ -1,0 +1,65 @@
+﻿Loading state 
+Loading state is to inform users when they have to wait for something, including data loading, data processing, searching, and downloading-uploading. This helps users to engage more with the platforms.
+#Loading state type 1: Step and level loading state (Type A) 
+##Contexts
+* When to inform users what the sequence of present state is.
+* When there are multi-step processes.
+##Principles
+* Mention the step number clearly to show users what state they are in.
+* Tell users what state is about with concise and simple wording.
+##Samples
+###th
+####Sample 1
+* Title: ขั้นที่ 1 ค้นหาข้อมูล
+####Sample 2
+* Title: ขั้นที่ 2 ประมวลข้อมูล
+####Sample 3
+* Title: ขั้นที่ 3 กำลังแสดงผล
+###en
+####Sample 1
+* Title: Step 1 Searching data
+####Sample 2
+* Title: Step 2 Processing data
+####Sample 3
+* Title: Step 3 Preparing results
+#Loading state type 2: Step and level loading state (Type B) 
+##Contexts
+* When to inform users what the sequence of present state is.
+* When there are multi-step processes.
+##Principles
+* Tell users what state is about with concise and simple wording.
+* Mention the percentage number as progression to make it clearer.
+##Samples
+###th
+####Sample 1
+* Title: กำลังโหลดข้อมูล 25%
+####Sample 2
+* Title: กำลังประมวลผลข้อมูล 75%
+###en
+####Sample 1
+* Title: Loading data 25%
+####Sample 2
+* Title: Processing data 75%
+#Loading state type 3: Information-focused type 
+##Contexts
+* When to inform users what the sequence of present state is with more details
+* When to inform users how they have to do or not to do.
+* When users have to deal with the process of loading or processing data for a while.
+##Principles
+* Tell users what state is about with concise and simple wording.
+* Tell users what they should do or shouldn’t do to complete the processes.
+##Samples
+###th
+####Sample 1
+* Title: กำลังโหลดข้อมูล
+* Description: เหลืออีก 5 นาที กรุณาอย่าปิดหน้าต่างเมนูขณะโหลดข้อมูล
+####Sample 2
+* Title: กำลังทำรายการชำระเงิน
+* Description: ระบบกำลังรตวจสอบสักครู่ กรุณารอจนกว่าระบบทำธุรกรรมเสร็จสิ้น
+###en
+####Sample 1
+* Title: Loading data 
+* Description: 5 minutes left until completion. Please wait and don’t close the menu window.
+####Sample 2
+* Title: Processing payment
+* Description: It takes a few minutes. Please wait until the transaction is completed.
