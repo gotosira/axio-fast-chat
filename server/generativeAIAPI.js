@@ -1240,7 +1240,13 @@ app.get('/api/tip-of-the-day', async (req, res) => {
             const documents = await loadAllDocuments(ai_id);
 
             if (documents.length === 0) {
-                return res.json({ tip: 'ยินดีต้อนรับสู่ BaoBao AI! พร้อมช่วยเหลือคุณเรื่อง UX writing แล้ว 🐕' });
+                const emptyFallbacks = {
+                    baobao: 'ยินดีต้อนรับสู่ BaoBao AI! พร้อมช่วยเหลือคุณเรื่อง UX writing แล้ว 🐕',
+                    deedee: 'สวัสดีค่ะ! DeeDee พร้อมช่วยวิเคราะห์ข้อมูลและ Google Analytics แล้ว 🦊',
+                    pungpung: 'สวัสดีค่ะ! PungPung พร้อมช่วยเขียน Creative Content แล้ว 🐝',
+                    baobaogpt5: 'ยินดีต้อนรับสู่ BaoBao (AI-Team)! พร้อมช่วยเหลือคุณเรื่อง UX writing แล้ว 🐕'
+                };
+                return res.json({ tip: emptyFallbacks[ai_id] || emptyFallbacks.baobao });
             }
 
             // Get a random document
