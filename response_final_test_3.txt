@@ -1,0 +1,228 @@
+data: {"type":"text","text":"ข้อมูลเกี่ยวกับ **Accordion Component** จาก AXIO Design System ครับ\n\n<div class=\"image-card-container\">\n  <"}
+
+data: {"type":"text","text":"div class=\"image-card\">\n    <img src=\"data:image/png;base64,i"}
+
+data: {"type":"text","text":"VBORw0KGgoAAAANSUhEUgAAAloAAADMCAIAAACX7lpNAAAoOUlEQVR"}
+
+data: {"type":"text","text":"4Xu2dCZwTVb7vkzQgna1b9F69c+/nzdz73"}
+
+data: {"type":"text","text":"rzPE7sbRWVR541XRaRTVQmbKIgjiqCIwswbwB1n"}
+
+data: {"type":"text","text":"/MyIc73jgnQnnc7SK6vLeF3Gi9soLuCCC+AGCCijIKg00HRS2"}
+
+data: {"type":"text","text":"/ufc0hIn0oqS6eSqu768rftTuqcOnXO7+xLWWQTE51"}
+
+data: {"type":"text","text":"hoT8wMSk3pihNdIcpShPdYYrSRHeYojTRHaYoTX"}
+
+data: {"type":"text","text":"SHKUoT3WGK0kR3mKI00R2mKE10hylKE"}
+
+data: {"type":"text","text":"91hirJAePI/Cf7JkiTCf5LEy5IoygJ8hg19a1IApig"}
+
+data: {"type":"text","text":"LBOtOEiUe/wRkESsRfoqiKCCZioKpyoIwRV"}
+
+data: {"type":"text","text":"kgIMQ3t3zz2BMfTFz611Mmt7jZkN3TZmd"}
+
+data: {"type":"text","text":"C1d7I2FvW3dz4+qsf7TnY1U07M8kBU5RZITV"}
+
+data: {"type":"text","text":"0TxyVjrzA881//bTa2+L2tTnZlqxWzXbeFn3j"}
+
+data: {"type":"text","text":"2x+6eJEXRShWoQw9XvObZMIUZXZEuZuPScfiwrm"}
+
+data: {"type":"text","text":"zn7CzIbfHD4UiCM7tza7Lob4mV31osC/s4lq//"}
+
+data: {"type":"text","text":"v4ICJyHWt1EFVOUGUFdFdxp2bTzh1OnrMMiiypll"}
+
+data: {"type":"text","text":"7MddzvqllUS8jYOfSIRtQLM/hCNKcqMxEEvglg"}
+
+data: {"type":"text","text":"393E3GxzEZS8UczE3F3V6206fEvr"}
+
+data: {"type":"text","text":"6wGFQJuoWmZpUYIoyI9919fzzzDVQ7Tq97"}
+
+data: {"type":"text","text":"W5vX8rIE+biWip9nS425GAjC5r+xkPHHf"}
+
+data: {"type":"text","text":"5BiWmSginKE6BxHTzOI8o93rueU0qq6PbzmWv4uIB12WMq"}
+
+data: {"type":"text","text":"M4kpylSQLkCZq17eVcVGlBoqurnYsGNiuCsmyALcO0YHZ6"}
+
+data: {"type":"text","text":"BiijIFNAouP/PatirfaodCQFqYgw3b2WA11y6LMTExS"}
+
+data: {"type":"text","text":"WRiijIFUb504ZPOIjUf8zCmxT2xk0dzQ2afB"}
+
+data: {"type":"text","text":"2GK8gR///Go3dvq8LTSotHYXNAr9wRHLmhH"}
+
+data: {"type":"text","text":"qjR1aYqSwONOzulTOxxMuDQVd1oLv/SFiLp"}
+
+data: {"type":"text","text":"ZA12XpigRkij8bFank43YmbCTo7VSMnNwoUNH"}
+
+data: {"type":"text","text":"jkgDvnE5oEV5fIGZLE0OB6tQt6MFFOn2l"}
+
+data: {"type":"text","text":"rr6ThoE4H/P7MSShKAN3CGiAS1KAa81EwXRP"}
+
+data: {"type":"text","text":"rmluuRNSaW5PO1DvS2z/+NFWeoZyBPkA1qU0"}
+
+data: {"type":"text","text":"JA8KsUH+ae72Yi7vvyihBatiw3bPa1X3fc3SY"}
+
+data: {"type":"text","text":"7TwR0wDERRQr2IElyUj0r8P7bMsl/5mF"}
+
+data: {"type":"text","text":"If5TU3E5IkHq0XlgZi+3KAihL+i8viXZs6LEHO6e"}
+
+data: {"type":"text","text":"1UyqKMZmfDQ7nQmTNXy2IMGpYDsB4fiKJEnRtR+"}
+
+data: {"type":"text","text":"vLQPqt/0k4fO/wii7/10rIIt0XdbIeTaz9"}
+
+data: {"type":"text","text":"nzmoedXcGXI9nIIpSFHlRkByBqdamCQ4u4m"}
+
+data: {"type":"text","text":"JDClnowiq9bf6nPx6Ao5YDUpSy9O9P3WUNeqy"}
+
+data: {"type":"text","text":"PTXGyYaenFGsvCrCTJkbcnhYRr7kcUAw0UUIbTX"}
+
+data: {"type":"text","text":"xo539ZA5ytgR30H1fbWX01KJU2+b6X0M6eg"}
+
+data: {"type":"text","text":"bSGaICJEq0m5y2NjK3Ja/OzQ29eCqlu53"}
+
+data: {"type":"text","text":"RaUhJzcB0Tl74kxQdQy3JgiVKKy6c0T7c0sWDWAOuY"}
+
+data: {"type":"text","text":"0ujyhO2+sFIK+jGHp9XOtLe/9An9MP2XASJKScC"}
+
+data: {"type":"text","text":"bwKa98KDFz9oaWfgJZmfwKjVO16J0eaJ2JuBm2"}
+
+data: {"type":"text","text":"+JoCur4tp7+zYAQJdq5zctzXnnU1shUBLxJUQ7zRB1c"}
+
+data: {"type":"text","text":"1MHqWpQOLuLm2qs9zf82Y42Mz+SgH6/f"}
+
+data: {"type":"text","text":"0c9FiQ/5AUmKPULMioWYam42WuVpcTLln2DMxdxMcFF4"}
+
+data: {"type":"text","text":"EyonBQmNqvdf+rkoQY+ChOru2rULLX7G2KJ"}
+
+data: {"type":"text","text":"k26qYzi27vxfwgUX0k/Yj+rsooSHGi+es"}
+
+data: {"type":"text","text":"+q2labxthbFFeTK3qpJtrp4QEuWYKPTnSryfi"}
+
+data: {"type":"text","text":"1ISxGXvr6W0mDQH0+ZmWuzlW9VbmP1y0VN"}
+
+data: {"type":"text","text":"xs/o2LqIsWJoYW8CrVCRY5bQVbjZs9+p0mjGTuZi"}
+
+data: {"type":"text","text":"WwHNf0I/aj+ifosSnCggxSfqnwBUVDWhUUqlIs"}
+
+data: {"type":"text","text":"EF3zkfbxAxSfVPmf3YLj05r7Yf0U1GiLdzy5c8uRXJs"}
+
+data: {"type":"text","text":"9FgTY0CUVfx5sosLO7hmZZLr3xwc2v0oiv1Qlv1TlFBUbvhm"}
+
+data: {"type":"text","text":"K5q28bNIkcH01bclwFSBKL3tyiTXv0Ev"}
+
+data: {"type":"text","text":"jb3zr/1yK09/E2VcRGc9H44dtQQUElRa04TKK1aU"}
+
+data: {"type":"text","text":"cU9tX6yqvq2SDV9+23NorQY6wa3/0N9"}
+
+data: {"type":"text","text":"EiZJHFKqar7Y0e4c2T6JV2NtsjV7bw5PtbIcy"}
+
+data: {"type":"text","text":"yfVvDjbo9kTtnuB7O47I/asS7y+ilPC8"}
+
+data: {"type":"text","text":"sIDWeN34+nJLI4dkl62wtDb6LM311fVR"}
+
+data: {"type":"text","text":"txcdU6FMeCNYq93XKYpxVF6KZJLf8PQTUaIm"}
+
+data: {"type":"text","text":"Pz7lYt7fAhX+eksAizK7+UC4Q+65BU"}
+
+data: {"type":"text","text":"odp17Xn+dg0Z/PWi2LPaLQT44x6CeilNERj/JRS"}
+
+data: {"type":"text","text":"bQGJtj8E62KGcUMNsna4LUG6h1c5GSPrpdlqBmHhrRuD"}
+
+data: {"type":"text","text":"29Ec4/9om3ZT0QpCuiIx9o1CxWyy8mcU0"}
+
+data: {"type":"text","text":"OVXl0v9c1qbib8zvaD/WOXWT8RpSyJP+2ca/V"}
+
+data: {"type":"text","text":"PUAouF7P6OSdX8hMAi2yRKibcP4pKw4sSHRjOy407"}
+
+data: {"type":"text","text":"n7Y0eS3NOdbatFkb2cp7b3Bx4WpP+zA6"}
+
+data: {"type":"text","text":"sY1k5938NH5D31H6mgyF4UUpCyJgCfkGQ6+l"}
+
+data: {"type":"text","text":"Ocf+DW3QDLUEL6+c9Wcn0+pGnR46sY1i"}
+
+data: {"type":"text","text":"Lq6t4+UdRu/uGF6U0OU8tXk6CMvawFhz7XQrLOC"}
+
+data: {"type":"text","text":"DGtwa8DqZdjdTnLeTlMVcTMtQbzj6irGXaxhVlD"}
+
+data: {"type":"text","text":"3otZyiIMlXvPif1mzjkTnaoEbf4D/NcDAr7d5"}
+
+data: {"type":"text","text":"w397jVEaLuqCw93Ty5FWmxpzpMaoo0TC5JP/"}
+
+data: {"type":"text","text":"Xl2+ftAJahB6lwgqxpnqr3zN40W3Vl3"}
+
+data: {"type":"text","text":"c48DiLAS3q4NpOYVtveugNdBKIMTf0GE+U6"}
+
+data: {"type":"text","text":"A0OkP/5eI8kVviLJMfeNvTWRU7GkHOPSXNxwZ"}
+
+data: {"type":"text","text":"sbNqK6ROINd4yB8USJtoEh5J91zrFoI0qLf3"}
+
+data: {"type":"text","text":"yVwUeIKrloJRN99eNv0LSjZDBZGk+UqJXECwteD"}
+
+data: {"type":"text","text":"9oaLh/UWOAYUBYLMYPunaVMaSOZJ+z2tbi9"}
+
+data: {"type":"text","text":"YVkQ4/EeOhL1jfFECTXS/3srkmndbhFt8NJ5Dug"}
+
+data: {"type":"text","text":"3GHMJcNJGzntGMFrL0nii5GXBGtSo1u5lVr/PP"}
+
+data: {"type":"text","text":"uduw64eOm7QDrm/9X06EvWNYUSJdt3gXy58f"}
+
+data: {"type":"text","text":"LE16FNqqOiGVq37OVd91Mm12Iv0auXSG1pX74"}
+
+data: {"type":"text","text":"ke7MIvFzfIJKRhRIkO0hHlcc/cXbGcsQQLHSTPy"}
+
+data: {"type":"text","text":"/CizIoHr3BPaHeQU4cMaSjkdqaDF+LoxVFGwDCiFCQ5sm"}
+
+data: {"type":"text","text":"29DY2TeyzL62kBaWBWfz0+6YUbvHhhGd/41"}
+
+data: {"type":"text","text":"EdD7yuHX+pDk+95BY2mGQEDiFLkoYwUJZ63+r0VK"}
+
+data: {"type":"text","text":"2jpaG026OAHJp40Y0Ul1+REJ1kassi0e4KVE8"}
+
+data: {"type":"text","text":"PPbPwSikp8jrquMYAoUVNIFK9+9WE8VK7NGJCKofl"}
+
+data: {"type":"text","text":"036DAxKrL213oPTeGXHY51NPsQGsu2w8"}
+
+data: {"type":"text","text":"e7da9JnUsSjJzI+ADGWe88qDyzLTSGL4vZAav9U"}
+
+data: {"type":"text","text":"+/qmKMOieOxhCYNgfX4mDbjsTR+1FlNFCk09"}
+
+data: {"type":"text","text":"pcv6LEbxlGK/zfPviFNUTEUU6z+ZmKW+7T+Q"}
+
+data: {"type":"text","text":"mrWQ2amD+d2SaJPNnSpE/00rIot0XdbIe"}
+
+data: {"type":"text","text":"Taz9nzmoedXcGXI9nIIpSFHlRkByBqdamCQ4"}
+
+data: {"type":"text","text":"u4mJDClnowiq9bf6nPx6Ao5YDUpSy9O9P3WUNeq"}
+
+data: {"type":"text","text":"yPTXGyYaenFGsvCrCTJkbcnhYRr7kcUAw0UUIb"}
+
+data: {"type":"text","text":"TXxo539ZA5ytgR30H1fbWX01KJU2+b6"}
+
+data: {"type":"text","text":"X0M6egbSGaICJEq0m5y2NjK3Ja/OzQ2"}
+
+data: {"type":"text","text":"9eCqlu53RaUhJzcB0Tl74kxQdQy3JgiV"}
+
+data: {"type":"text","text":"KKy6c0T7c0sWDWAOuY0ujyhO2+sFIK+"}
+
+data: {"type":"text","text":"jGHp9XOtLe/9An9MP2XASJKScCbwKa98KDFz"}
+
+data: {"type":"text","text":"9oaWfgJZmfwKjVO16J0eaJ2JuBm2+JoCur4tp7"}
+
+data: {"type":"text","text":"+zYAQJdq5zctzXnnU1shUBLxJUQ7zRB1c1"}
+
+data: {"type":"text","text":"MHqWpQOLuLm2qs9zf82Y42Mz+SgH6/f0c9FiQ"}
+
+data: {"type":"text","text":"/5AUmKPULMioWYam42WuVpcTLln2DMxdxMcFF4E"}
+
+data: {"type":"text","text":"yonBQmNqvdf+rkoQY+ChOru2rULLX7G2KJk2"}
+
+data: {"type":"text","text":"6qYzi27vxfwgUX0k/Yj+rsooSHGi+es+q2lab"}
+
+data: {"type":"text","text":"xthbFFeTK3qpJtrp4QEuWYKPTnSryfi1ISxGX"}
+
+data: {"type":"text","text":"vr6W0mDQH0+ZmWuzlW9VbmP1y0VNxs/"}
+
+data: {"text":"สวัสดีครับ! 🐙 ขออภัยครับ ตอนนี้โฟลว์โฟลว์มีปัญหาในการเชื่อมต่อกับระบบ AI นิดหน่อย 😅 (Error: terminated)\n\nแต่โฟลว์โฟลว์เจอข้อมูลที่เกี่ยวข้องในคลังเอกสารแล้วนะครับ!\n\nพบข้อมูล 9 รายการในหมวดหมู่: General, General, Components\n\nลองถามใหม่อีกครั้งนะครับ! ✨"}
+
+data: [DONE]
+

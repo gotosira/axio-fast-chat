@@ -1,0 +1,54 @@
+data: {"type":"thinking","text":"ค้นหาข้อมูลจากไฟล์ `_AXIO Design System - Foundation.md` ในหัวข้อ **BRANDING** และ **Corporate Logo Colors** พบข้อมูลความหมายของ Logo และค่าสี Hex Code ที่ถูกต้องครบถ้วนครับ"}
+
+data: {"type":"text","text":"<div class=\"image-card-container\">\n  <div class"}
+
+data: {"type":"text","text":"=\"image-card\">\n    <img src=\"http://localhost:3001/api/images/"}
+
+data: {"type":"text","text":"image1\" alt=\"AXONS Brand Concept\">\n    <div class=\"image-card-caption\">AXONS"}
+
+data: {"type":"text","text":" Brand Concept</div>\n  </div>\n</div>\n\n## AXONS Logo Concept & Colors\nจากข้อมูลในไฟล์ `_AXIO Design System - Foundation"}
+
+data: {"type":"text","text":".md` รายละเอียดของ Logo มีดังนี้ครับ:\n\n### ความหมาย (Brand Concept)\nLogo ของ AXONS สะท้อนถึง"}
+
+data: {"type":"text","text":"แนวคิด **\"การก้าวไปข้างหน้าอย่างไม่หยุดยั้ง (continuous progress)\"** ครับ\n*   **น"}
+
+data: {"type":"text","text":"วัตกรรม:** มุ่งมั่นพัฒนานวัตกรรมเพื่อคุณภาพชีวิตที่ดีขึ้น\n*   **สัญลักษณ์:** กราฟิกและวัสดุสื่อ"}
+
+data: {"type":"text","text":"ถึงการผสมผสานที่ไร้รอยต่อระหว่าง \"Life\" (ชีวิต) และ \"Technology\" (เทคโนโลยี)"}
+
+data: {"type":"text","text":"\n*   **เส้นนำสายตา (Directional lines):** สื่อถึงการเติบโต (Growth), คุณภาพ ("}
+
+data: {"type":"text","text":"Quality) และความมุ่งมั่นตามสโลแกน *DRIVING FUTURE FOR LIVES*\n\n### สีของ Logo (Corporate Logo Colors"}
+
+data: {"type":"text","text":")\nLogo หลักประกอบด้วย 3 สี ซึ่งต้องใช้ให้ถูกต้องแม่นยำตามค่าสีนี้เสมอครับ:\n\n| ชื่อ"}
+
+data: {"type":"text","text":"สี | Hex Code | RGB |\n| :--- | :--- | :--- |\n| **Green** |"}
+
+data: {"type":"text","text":" #22AB68 | 34, 171, 104 |\n| **"}
+
+data: {"type":"text","text":"Driven Blue** | #074E9F | 7, 78, 159 |"}
+
+data: {"type":"text","text":"\n| **Black** (AXONS) | #3B3A3C | 59, 5"}
+
+data: {"type":"text","text":"8, 60 |\n\n---\n\n### รูปแบบการใช้งานสีเดียว (Single Colors & Reverse Version)\nในกรณีที่มี"}
+
+data: {"type":"text","text":"ข้อจำกัดด้านการพิมพ์หรืองบประมาณ หรือวางบนพื้นหลังสีที่ทำให้ Logo ไม่เด่นชัด ให้ใช้รูปแบบนี้"}
+
+data: {"type":"text","text":"ครับ:\n\n<div class=\"image-card-container\">\n  <div class=\"image-card\">\n"}
+
+data: {"type":"text","text":"    <img src=\"http://localhost:3001/api/images/image2\" alt=\"Single"}
+
+data: {"type":"text","text":" Version\">\n    <div class=\"image-card-caption\">Single Version (สีเดียว)</div>\n  </div>"}
+
+data: {"type":"text","text":"\n  <div class=\"image-card\">\n    <img src=\"http://localhost:3001"}
+
+data: {"type":"text","text":"/api/images/image3\" alt=\"Reverse Version\">\n    <div class=\"image-card-caption"}
+
+data: {"type":"text","text":"\">Reverse Version (สีขาวบนพื้นเข้ม)</div>\n  </div>\n</div>\n\nข้อมูลทั้งหมดอ้างอิงจากไฟล์: "}
+
+data: {"type":"text","text":"`_AXIO Design System - Foundation.md` ครับผม! 🐙✨"}
+
+data: {"type":"references","files":"_AXIO Design System - Foundation.md, _AXIO Design System - Foundation, _Component List.md, _Component List, _Component Overview.md, _Component Overview, _List of Design Template or Pattern.md, _List of Design Template or Pattern, _List of System Icon.md"}
+
+data: [DONE]
+

@@ -1,0 +1,15 @@
+[
+    {
+        "id": "figma-local",
+        "name": "Figma Integration",
+        "type": "stdio",
+        "command": "node",
+        "args": [
+            "./server/mcp/figma-server.js"
+        ],
+        "env": {
+            "FIGMA_ACCESS_TOKEN": "YOUR_FIGMA_ACCESS_TOKEN",
+            "_COMMENT": "Token expires in 90 days from 2025-11-27. Please rotate around 2026-02-25."
+        }
+    }
+]

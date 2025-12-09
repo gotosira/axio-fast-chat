@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import { Plus } from 'lucide-react';
 import { FadeInText } from './FadeInText';
 
 export const ConversationSidebar = ({
@@ -12,7 +14,13 @@ export const ConversationSidebar = ({
     onClose,
     selectedAI,
     aiAssistants,
-    onSelectAI
+    onSelectAI,
+    folders = [],
+    createFolder,
+    renameFolder,
+    deleteFolder,
+    moveConversation,
+    deleteAllConversations
 }) => {
     const [editingId, setEditingId] = useState(null);
     const [editTitle, setEditTitle] = useState('');
@@ -24,6 +32,27 @@ export const ConversationSidebar = ({
     const [draggedItem, setDraggedItem] = useState(null);
     const [dragOverItem, setDragOverItem] = useState(null);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
+    const [expandedFolders, setExpandedFolders] = useState({});
+    const [newFolderName, setNewFolderName] = useState('');
+    const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+    const [editingFolderId, setEditingFolderId] = useState(null);
+    const [editFolderName, setEditFolderName] = useState('');
+
+    // Sync aiOrder with aiAssistants when new agents are added
+    useEffect(() => {
+        const currentIds = Object.keys(aiAssistants);
+        setAiOrder(prevOrder => {
+            // Get IDs that are in aiAssistants but not in prevOrder
+            const newIds = currentIds.filter(id => !prevOrder.includes(id));
+            // Get IDs that are in prevOrder but no longer in aiAssistants (cleanup)
+            const validPrevOrder = prevOrder.filter(id => currentIds.includes(id));
+
+            if (newIds.length > 0 || validPrevOrder.length !== prevOrder.length) {
+                return [...validPrevOrder, ...newIds];
+            }
+            return prevOrder;
+        });
+    }, [aiAssistants]);
 
     const handleStartEdit = (conv, e) => {
         e.stopPropagation();
@@ -117,6 +146,58 @@ export const ConversationSidebar = ({
     const handleDragEnd = () => {
         setDraggedItem(null);
         setDragOverItem(null);
+    };
+
+    // Conversation Drag & Drop
+    const handleConversationDragStart = (e, convId) => {
+        e.dataTransfer.setData('conversationId', convId);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleFolderDrop = (e, folderId) => {
+        e.preventDefault();
+        const convId = e.dataTransfer.getData('conversationId');
+        if (convId) {
+            moveConversation(convId, folderId);
+            // Auto-expand folder on drop
+            if (folderId) {
+                setExpandedFolders(prev => ({ ...prev, [folderId]: true }));
+            }
+        }
+    };
+
+    const handleFolderDragOver = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    };
+
+    // Folder Management
+    const toggleFolder = (folderId) => {
+        setExpandedFolders(prev => ({
+            ...prev,
+            [folderId]: !prev[folderId]
+        }));
+    };
+
+    const handleCreateFolder = () => {
+        if (newFolderName.trim()) {
+            createFolder(uuidv4(), newFolderName.trim());
+            setNewFolderName('');
+            setIsCreatingFolder(false);
+        }
+    };
+
+    const handleStartEditFolder = (folder, e) => {
+        e.stopPropagation();
+        setEditingFolderId(folder.id);
+        setEditFolderName(folder.name);
+    };
+
+    const handleSaveEditFolder = (id) => {
+        if (editFolderName.trim()) {
+            renameFolder(id, editFolderName.trim());
+        }
+        setEditingFolderId(null);
     };
 
     // Get ordered AI list
@@ -261,7 +342,7 @@ export const ConversationSidebar = ({
                                                 flex-shrink-0 p-2 rounded-lg cursor-pointer
                                                 ${selectedAI === ai.id
                                                         ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 shadow-sm'
-                                                        : 'bg-bg-base hover:bg-bg-hover text-text-secondary hover:shadow-md'
+                                                        : 'bg-bg-base hover:bg-bg-hover text-text-secondary'
                                                     }
                                                 ${isDropTarget ? 'ring-2 ring-blue-400 shadow-lg' : ''}
                                                 ${isBeingDragged ? 'opacity-40 scale-95' : 'hover:scale-[1.02]'}
@@ -338,7 +419,7 @@ export const ConversationSidebar = ({
                                                 min-w-[4rem] cursor-pointer
                                                 ${selectedAI === ai.id
                                                         ? 'bg-bg-active text-text-primary shadow-sm'
-                                                        : 'text-text-muted hover:bg-bg-hover hover:text-text-primary hover:shadow-md'
+                                                        : 'text-text-muted hover:bg-bg-hover hover:text-text-primary'
                                                     }
                                                 ${isDropTarget ? 'ring-2 ring-blue-400 shadow-lg' : ''}
                                                 ${isBeingDragged ? 'opacity-40 scale-95' : 'hover:scale-[1.02]'}
@@ -381,110 +462,297 @@ export const ConversationSidebar = ({
                         </button>
                     </div>
 
-                    {/* Conversation List */}
+                    {/* Folders & Conversations List */}
                     <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-1">
-                        {conversations.map((conv) => (
+
+                        {/* Create Folder Button */}
+                        <div className="px-1 py-2">
+                            {isCreatingFolder ? (
+                                <div className="flex items-center gap-2 px-2">
+                                    <input
+                                        type="text"
+                                        value={newFolderName}
+                                        onChange={(e) => setNewFolderName(e.target.value)}
+                                        placeholder="Folder Name"
+                                        className="flex-1 bg-bg-base border border-border-weak rounded px-2 py-1 text-sm focus:outline-none focus:border-color-brand"
+                                        autoFocus
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') handleCreateFolder();
+                                            if (e.key === 'Escape') setIsCreatingFolder(false);
+                                        }}
+                                        onBlur={() => setIsCreatingFolder(false)}
+                                    />
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => setIsCreatingFolder(true)}
+                                    className="w-full flex items-center gap-2 px-2 py-1 text-xs text-text-muted hover:text-text-primary transition-colors"
+                                >
+                                    <Plus className="w-3 h-3" />
+                                    <span>Create Folder</span>
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Folders */}
+                        {folders.map(folder => (
                             <div
-                                key={conv.id}
-                                onClick={() => onSelectConversation(conv.id)}
-                                className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all ${currentConversationId === conv.id
-                                    ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 shadow-sm border-l-[3px] border-blue-600'
-                                    : 'text-text-secondary hover:bg-bg-hover hover:text-text-primary border-l-[3px] border-transparent'
-                                    }`}
+                                key={folder.id}
+                                onDragOver={handleFolderDragOver}
+                                onDrop={(e) => handleFolderDrop(e, folder.id)}
+                                className="mb-1"
                             >
-                                <div className="flex-1 min-w-0">
-                                    {editingId === conv.id ? (
-                                        <input
-                                            type="text"
-                                            value={editTitle}
-                                            onChange={(e) => setEditTitle(e.target.value)}
-                                            onBlur={() => handleSaveEdit(conv.id)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') handleSaveEdit(conv.id);
-                                                if (e.key === 'Escape') setEditingId(null);
-                                            }}
-                                            autoFocus
-                                            className="w-full bg-transparent border border-border-weak rounded px-1 py-0.5 text-sm focus:outline-none focus:border-color-brand"
-                                            onClick={(e) => e.stopPropagation()}
-                                        />
-                                    ) : (
-                                        <>
-                                            <p className="text-sm font-medium truncate">
-                                                {conv.title || 'New Conversation'}
-                                            </p>
-                                            <p className="text-xs text-text-muted truncate mt-0.5">
-                                                {new Date(conv.updated_at).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}
-                                            </p>
-                                        </>
+                                <div
+                                    className="group flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-bg-hover cursor-pointer"
+                                    onClick={() => toggleFolder(folder.id)}
+                                >
+                                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                                        <svg
+                                            width="12"
+                                            height="12"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            className={`transition-transform text-text-muted ${expandedFolders[folder.id] ? 'rotate-90' : ''}`}
+                                        >
+                                            <polyline points="9 18 15 12 9 6"></polyline>
+                                        </svg>
+
+                                        {editingFolderId === folder.id ? (
+                                            <input
+                                                type="text"
+                                                value={editFolderName}
+                                                onChange={(e) => setEditFolderName(e.target.value)}
+                                                onBlur={() => handleSaveEditFolder(folder.id)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') handleSaveEditFolder(folder.id);
+                                                    if (e.key === 'Escape') setEditingFolderId(null);
+                                                }}
+                                                onClick={(e) => e.stopPropagation()}
+                                                autoFocus
+                                                className="flex-1 bg-transparent border border-border-weak rounded px-1 py-0.5 text-xs focus:outline-none focus:border-color-brand"
+                                            />
+                                        ) : (
+                                            <span className="text-xs font-semibold text-text-secondary truncate select-none">
+                                                {folder.name}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {editingFolderId !== folder.id && (
+                                        <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={(e) => handleStartEditFolder(folder, e)}
+                                                className="p-1 hover:bg-bg-active rounded text-text-muted hover:text-text-primary"
+                                            >
+                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    deleteFolder(folder.id);
+                                                }}
+                                                className="p-1 hover:bg-bg-active rounded text-text-muted hover:text-danger"
+                                            >
+                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
 
-                                {editingId !== conv.id && (
-                                    <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button
-                                            onClick={(e) => handleStartEdit(conv, e)}
-                                            className="p-1 hover:bg-bg-hover rounded text-text-muted hover:text-text-primary transition-colors"
-                                            title="Rename"
-                                        >
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                        </button>
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onDeleteConversation(conv.id);
-                                            }}
-                                            className="p-1 hover:bg-bg-hover rounded text-text-muted hover:text-danger transition-colors"
-                                            title="Delete"
-                                        >
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                        </button>
+                                {/* Folder Contents */}
+                                {expandedFolders[folder.id] && (
+                                    <div className="ml-2 pl-2 border-l border-border-weak/50 mt-1 space-y-0.5">
+                                        {conversations
+                                            .filter(c => c.folder_id === folder.id)
+                                            .map(conv => (
+                                                <ConversationItem
+                                                    key={conv.id}
+                                                    conv={conv}
+                                                    currentConversationId={currentConversationId}
+                                                    onSelectConversation={onSelectConversation}
+                                                    editingId={editingId}
+                                                    editTitle={editTitle}
+                                                    setEditTitle={setEditTitle}
+                                                    handleSaveEdit={handleSaveEdit}
+                                                    setEditingId={setEditingId}
+                                                    handleStartEdit={handleStartEdit}
+                                                    onDeleteConversation={onDeleteConversation}
+                                                    handleDragStart={handleConversationDragStart}
+                                                />
+                                            ))}
+                                        {conversations.filter(c => c.folder_id === folder.id).length === 0 && (
+                                            <div className="px-3 py-2 text-[10px] text-text-muted italic">
+                                                Empty folder
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
                         ))}
+
+                        {/* Unorganized Conversations (Root) */}
+                        <div
+                            onDragOver={handleFolderDragOver}
+                            onDrop={(e) => handleFolderDrop(e, null)}
+                            className="pt-2"
+                        >
+                            {conversations
+                                .filter(c => !c.folder_id)
+                                .map((conv) => (
+                                    <ConversationItem
+                                        key={conv.id}
+                                        conv={conv}
+                                        currentConversationId={currentConversationId}
+                                        onSelectConversation={onSelectConversation}
+                                        editingId={editingId}
+                                        editTitle={editTitle}
+                                        setEditTitle={setEditTitle}
+                                        handleSaveEdit={handleSaveEdit}
+                                        setEditingId={setEditingId}
+                                        handleStartEdit={handleStartEdit}
+                                        onDeleteConversation={onDeleteConversation}
+                                        handleDragStart={handleConversationDragStart}
+                                    />
+                                ))}
+                        </div>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="p-4 border-t border-border-weak">
+                        <button
+                            onClick={() => {
+                                if (window.confirm(`Are you sure you want to delete ALL conversations for ${aiAssistants[selectedAI]?.name || 'this AI'}? This cannot be undone.`)) {
+                                    deleteAllConversations(selectedAI);
+                                }
+                            }}
+                            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs text-danger hover:bg-danger/10 rounded-md transition-colors"
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                            Clear {aiAssistants[selectedAI]?.name || 'AI'} History
+                        </button>
                     </div>
                 </div>
             </aside>
 
             {/* Context Menu */}
-            {contextMenu && (
-                <>
-                    <div
-                        className="fixed inset-0 z-40"
-                        onClick={() => setContextMenu(null)}
-                    />
-                    <div
-                        className="fixed z-50 bg-panel border border-border-weak rounded-lg shadow-lg py-1 min-w-[150px]"
-                        style={{
-                            left: `${contextMenu.x}px`,
-                            top: `${contextMenu.y}px`
-                        }}
-                    >
-                        {isPinned(contextMenu.aiId) ? (
-                            <button
-                                onClick={() => handleUnpin(contextMenu.aiId)}
-                                className="w-full px-4 py-2 text-left text-sm hover:bg-bg-hover transition-colors flex items-center gap-2"
-                            >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <line x1="2" y1="12" x2="22" y2="12"></line>
-                                </svg>
-                                Unpin
-                            </button>
-                        ) : (
-                            <button
-                                onClick={() => handlePin(contextMenu.aiId)}
-                                className="w-full px-4 py-2 text-left text-sm hover:bg-bg-hover transition-colors flex items-center gap-2"
-                            >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M12 17v5"></path>
-                                    <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a3 3 0 0 0-6 0v3.76z"></path>
-                                </svg>
-                                Pin
-                            </button>
-                        )}
-                    </div>
-                </>
-            )}
+            {
+                contextMenu && (
+                    <>
+                        <div
+                            className="fixed inset-0 z-40"
+                            onClick={() => setContextMenu(null)}
+                        />
+                        <div
+                            className="fixed z-50 bg-panel border border-border-weak rounded-lg shadow-lg py-1 min-w-[150px]"
+                            style={{
+                                left: `${contextMenu.x}px`,
+                                top: `${contextMenu.y}px`
+                            }}
+                        >
+                            {isPinned(contextMenu.aiId) ? (
+                                <button
+                                    onClick={() => handleUnpin(contextMenu.aiId)}
+                                    className="w-full px-4 py-2 text-left text-sm hover:bg-bg-hover transition-colors flex items-center gap-2"
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                                    </svg>
+                                    Unpin
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => handlePin(contextMenu.aiId)}
+                                    className="w-full px-4 py-2 text-left text-sm hover:bg-bg-hover transition-colors flex items-center gap-2"
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M12 17v5"></path>
+                                        <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a3 3 0 0 0-6 0v3.76z"></path>
+                                    </svg>
+                                    Pin
+                                </button>
+                            )}
+                        </div>
+                    </>
+                )
+            }
         </>
     );
 };
+
+// Helper Component for Conversation Item
+const ConversationItem = ({
+    conv,
+    currentConversationId,
+    onSelectConversation,
+    editingId,
+    editTitle,
+    setEditTitle,
+    handleSaveEdit,
+    setEditingId,
+    handleStartEdit,
+    onDeleteConversation,
+    handleDragStart
+}) => (
+    <div
+        draggable
+        onDragStart={(e) => handleDragStart(e, conv.id)}
+        onClick={() => onSelectConversation(conv.id)}
+        className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all ${currentConversationId === conv.id
+            ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 shadow-sm border-l-[3px] border-blue-600'
+            : 'text-text-secondary hover:bg-bg-hover hover:text-text-primary border-l-[3px] border-transparent'
+            }`}
+    >
+        <div className="flex-1 min-w-0">
+            {editingId === conv.id ? (
+                <input
+                    type="text"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    onBlur={() => handleSaveEdit(conv.id)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSaveEdit(conv.id);
+                        if (e.key === 'Escape') setEditingId(null);
+                    }}
+                    autoFocus
+                    className="w-full bg-transparent border border-border-weak rounded px-1 py-0.5 text-sm focus:outline-none focus:border-color-brand"
+                    onClick={(e) => e.stopPropagation()}
+                />
+            ) : (
+                <>
+                    <p className="text-sm font-medium truncate">
+                        {conv.title || 'New Conversation'}
+                    </p>
+                    <p className="text-xs text-text-muted truncate mt-0.5">
+                        {new Date(conv.updated_at).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}
+                    </p>
+                </>
+            )}
+        </div>
+
+        {editingId !== conv.id && (
+            <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                    onClick={(e) => handleStartEdit(conv, e)}
+                    className="p-1 hover:bg-bg-hover rounded text-text-muted hover:text-text-primary transition-colors"
+                    title="Rename"
+                >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </button>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteConversation(conv.id);
+                    }}
+                    className="p-1 hover:bg-bg-hover rounded text-text-muted hover:text-danger transition-colors"
+                    title="Delete"
+                >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+            </div>
+        )}
+    </div>
+);

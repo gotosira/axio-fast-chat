@@ -52,10 +52,14 @@ export const FilePreview = ({ file, onClose }) => {
 
                 // 1. Images
                 if (mimeType.startsWith('image/')) {
+                    // Check if data is a URL or base64
+                    const isUrl = data && (data.startsWith('http') || data.startsWith('/'));
+                    const imageSrc = isUrl ? data : `data:${mimeType};base64,${data}`;
+
                     setContent(
                         <div className="flex items-center justify-center w-full h-full p-8">
                             <img
-                                src={`data:${mimeType};base64,${data}`}
+                                src={imageSrc}
                                 alt={name}
                                 className="max-w-full max-h-[calc(90vh-120px)] object-contain rounded-lg"
                             />

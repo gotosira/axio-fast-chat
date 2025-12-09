@@ -1,0 +1,28 @@
+data: {"type":"thinking","text":"\nพบข้อมูล Accordion ในไฟล์ `_Component List.md` เป็น Interactive Component ที่ใช้สำหรับขยายและซ่อนเนื้อหาเพื่อจัดระเบียบข้อมูลครับ"}
+
+data: {"type":"text","text":"<"}
+
+data: {"type":"text","text":"div class=\"image-card-container\">\n  <div class=\"image-card\">\n    <img src"}
+
+data: {"type":"text","text":"=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAu"}
+
+data: {"type":"text","text":"AAAAH0CAYAAAD0d09XAAAAAXNSR0IArs4c6Q"}
+
+data: {"type":"text","text":"AAIABJREFUeF7s3Xl4VNW9//H3TJLJvtmb"}
+
+data: {"type":"text","text":"TCAJCSGBsIewCAgIyi6L4A19rG99tL6"}
+
+data: {"type":"text","text":"1ttq+1/a2tv2192qv17bX9rb2vVatVbF"}
+
+data: {"type":"text","text":"6tYqgIqBsIqBsISSQhCyTTCazT5L5/Z"}
+
+data: {"type":"text","text":"6TGUiYkISZJJN8P8/jMzNn/s4533P"}
+
+data: {"type":"text","text":"OnJz5nXP+55hMJpMIBAKBQCAQCAQCgTBuMO"}
+
+data: {"type":"text","text":"IdgEAgEAgEAoFAIBB0IAEOBAKBQCAQCAQC4VwgAQ"}
+
+data: {"type":"text","text":"4EAoFAIBAIBAKBBDgQCAQCgUAgEAiEc4EEOBAIBAKBQCAQC"}
+
+data: {"type":"text","text":"IRCjHcAAoHg3DEajV57vQKBQCAQCIQLg8lkk"}
+

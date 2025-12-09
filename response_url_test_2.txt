@@ -1,0 +1,50 @@
+data: {"type":"text","text":"<div class=\"image-card-container\">\n  <div class=\"image-card\">\n    <img src=\"http://localhost:3001/api/images/image1\" alt=\"Accordion Component Example"}
+
+data: {"type":"text","text":"\">\n    <div class=\"image-card-caption\">ตัวอย่าง Accordion Component</div>\n  </div>\n  "}
+
+data: {"type":"text","text":"<div class=\"image-card\">\n    <img src=\"http://localhost:3001/api"}
+
+data: {"type":"text","text":"/images/image7\" alt=\"Accordion Spacing Specification 1\">\n    <div class=\"image-card"}
+
+data: {"type":"text","text":"-caption\">ระยะห่าง (Spacing) แบบ Collapse</div>\n  </div>\n  <div class=\"image-card"}
+
+data: {"type":"text","text":"\">\n    <img src=\"http://localhost:3001/api/images/image8\" alt"}
+
+data: {"type":"text","text":"=\"Accordion Spacing Specification 2\">\n    <div class=\"image-card-caption\">ระยะห่าง (Spacing"}
+
+data: {"type":"text","text":") รายละเอียด</div>\n  </div>\n</div>\n\n## ข้อมูล Accordion Component\nAccordion เป็น UI element ที่ช่วยจัดระ"}
+
+data: {"type":"text","text":"เบียบเนื้อหาจำนวนมากโดยแบ่งเป็นส่วนๆ ที่สามารถยืด (expand) และหด (collapse) ได้"}
+
+data: {"type":"text","text":" เพื่อลดความรกของหน้าจอและทำให้ผู้ใช้เข้าถึงข้อมูลที่ต้องการได้ง่ายขึ้นครับ\n\n### 💡"}
+
+data: {"type":"text","text":" การใช้งาน (Usage Guidelines)\n*   **ควรใช้เมื่อ:** ต้องการแสดงข้อมูลที่จัดหมวดหมู่ได้ เช่น"}
+
+data: {"type":"text","text":" FAQs, รายละเอียดสินค้า/บริการ หรือฟอร์มที่มีหลายส่วน\n*   **ไม่ควรใช้เมื่อ:** เนื้อหาทุก"}
+
+data: {"type":"text","text":"ส่วนมีความสำคัญเท่ากันและควรแสดงพร้อมกัน หรือเนื้อหาสั้นเกินไปจนไม่คุ้มที่จะซ่อน\n*"}
+
+data: {"type":"text","text":"   **Best Practice:** ควรมีหัวข้อที่ชัดเจน, มีไอคอน (ลูกศร) บอกสถานะเปิด"}
+
+data: {"type":"text","text":"/ปิด และรองรับการใช้งานผ่านคีย์บอร์ด\n\n### ⚙️ คุณสมบัติ (Properties)\n*   **"}
+
+data: {"type":"text","text":"Size:** Normal\n*   **Icon Support:** รองรับ (Yes)\n*   **Color Adjustment:** ไม่สามารถปรับสีได้"}
+
+data: {"type":"text","text":" (No)\n*   **Responsive:** รองรับเฉพาะความกว้าง (Width only)\n\n### 🏗️ โครง"}
+
+data: {"type":"text","text":"สร้าง (Anatomy)\n*   **Headers:** ตัวหนา (Bold), มี Subtitle ได้, คลิกได้"}
+
+data: {"type":"text","text":"เพื่อเปิด/ปิด\n*   **Content Area:** พื้นที่แสดงรายละเอียดข้อมูล\n*   **Icons:** ไอคอน"}
+
+data: {"type":"text","text":"แสดงสถานะ Collapse/Expand\n*   **Design:** มีเส้นแบ่งบางๆ (Light borders) เพื่อแยกแต่ละ"}
+
+data: {"type":"text","text":"ส่วนให้ชัดเจน\n\n### ♿ การเข้าถึง (Accessibility)\nรองรับ Screen Reader (ARIA attributes) และ"}
+
+data: {"type":"text","text":" Keyboard Navigation (Tab, Enter/Spacebar, Arrow Keys) ครับ\n\n---\n**อ้างอิงจากไฟล์:** "}
+
+data: {"type":"text","text":"`_Component List.md`"}
+
+data: {"type":"references","files":"_AXIO Design System - Foundation.md, _AXIO Design System - Foundation, _Component List.md, _Component List, _Component Overview.md, _Component Overview, _List of Design Template or Pattern.md, _List of Design Template or Pattern, _List of System Icon.md"}
+
+data: [DONE]
+

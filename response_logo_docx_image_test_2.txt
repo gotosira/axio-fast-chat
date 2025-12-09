@@ -1,0 +1,38 @@
+data: {"type":"thinking","text":"เจอข้อมูลในไฟล์ `_AXIO Design System - Foundation.md` ครับ โลโก้ AXONS สื่อถึงการพัฒนาไม่หยุดยั้ง ผสมผสานชีวิตและเทคโนโลยี มี 3 สีหลักคือ เขียว, น้ำเงิน, และดำ ตอบทันทีครับ!"}
+
+data: {"type":"text","text":"<div class=\"image-card-container\">\n  <div class=\"image-card\">"}
+
+data: {"type":"text","text":"\n    <img src=\"http://localhost:3001/api/images/image1\" alt=\""}
+
+data: {"type":"text","text":"AXONS Brand Concept\">\n    <div class=\"image-card-caption\">AXONS Brand Concept</div>\n  </div>\n</div>\n\n## AX"}
+
+data: {"type":"text","text":"ONS Logo Concept\nโลโก้ของ AXONS สื่อถึงแนวคิด **\"การก้าวไปข้างหน้าอย่าง"}
+
+data: {"type":"text","text":"ต่อเนื่องโดยไม่ย่อท้อ\" (Continuous progress without complaint)** ครับ\n\n### ความหมายหลัก:\n*   "}
+
+data: {"type":"text","text":"แสดงถึงความมุ่งมั่นในนวัตกรรมเพื่อพัฒนาคุณภาพชีวิต\n*   กราฟิกสื่อถึงการผสมผสานระหว่าง **\""}
+
+data: {"type":"text","text":"Life\" (ชีวิต)** และ **\"Technology\" (เทคโนโลยี)** อย่างลงตัว\n*   เส้นสายที่พ"}
+
+data: {"type":"text","text":"ุ่งไปข้างหน้าสื่อถึงการเติบโต คุณภาพ และเป้าหมายคือ **\"DRIVING FUTURE FOR L"}
+
+data: {"type":"text","text":"IVES\"**\n\n## Corporate Logo Colors (สีของโลโก้)\nโลโก้หลักประกอบด้วย 3"}
+
+data: {"type":"text","text":" สี ซึ่งต้องใช้ให้ถูกต้องตามค่าสีที่กำหนดเพื่อรักษา Brand Identity ดังนี้ครับ:\n\n| Color Name | Hex Code | RGB |\n|"}
+
+data: {"type":"text","text":" :--- | :--- | :--- |\n| 🟢 **Green** | `#22AB68"}
+
+data: {"type":"text","text":"` | (34, 171, 104) |\n| 🔵 **Driven Blue**"}
+
+data: {"type":"text","text":" | `#074E9F` | (7, 78, 159) |\n"}
+
+data: {"type":"text","text":"| ⚫ **Black** | `#3B3A3C` | (59, 58, "}
+
+data: {"type":"text","text":"60) |\n\n**อ้างอิงจากไฟล์:** `_AXIO Design System - Foundation.md"}
+
+data: {"type":"text","text":"`\n\nหากต้องการไฟล์ Logo หรือข้อมูลการใช้งานแบบ Single/Reverse version บอก FlowFlow ได้เลยครับ! 🐙✨"}
+
+data: {"type":"references","files":"_AXIO Design System - Foundation.docx, _AXIO Design System - Foundation.md, _Component List.docx, _Component List.md, _Component Overview.docx, _Component Overview.md, _List of Design Template or Pattern.docx, _List of Design Template or Pattern.md, _List of System Icon.docx"}
+
+data: [DONE]
+

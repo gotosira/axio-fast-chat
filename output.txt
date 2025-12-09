@@ -1,0 +1,71 @@
+🚀 Starting FlowFlow Figma Test...
+🔌 Connecting to MCP servers...
+🔌 Connecting to MCP servers...
+🔌 Connecting to MCP server: Figma Integration (stdio)...
+✅ Connected to MCP server: Figma Integration
+🛠️ Checking available tools...
+🛠️ Found 1 MCP tools: [ 'get_figma_node' ]
+🤖 Generating AI Response...
+🤖 Requesting Gemini stream from model: gemini-3-pro-preview
+🤖 Stream connection established. Iterating...
+📦 Received chunk
+📦 Chunk parts: [
+  {
+    "functionCall": {
+      "name": "get_figma_node",
+      "args": {
+        "url": "https://www.figma.com/design/c8hfXe7pvQI5gVWBX5DNcf/Login-and-OTP---Templates?node-id=11001-13690&t=R0U8Y8v9vd1138O8-4"
+      }
+    }
+  }
+]
+🔍 Inspecting part with functionCall: {
+  "functionCall": {
+    "name": "get_figma_node",
+    "args": {
+      "url": "https://www.figma.com/design/c8hfXe7pvQI5gVWBX5DNcf/Login-and-OTP---Templates?node-id=11001-13690&t=R0U8Y8v9vd1138O8-4"
+    }
+  }
+}
+⚠️ No thoughtSignature found in part
+📦 Received chunk
+📦 Chunk parts: [
+  {
+    "text": ""
+  }
+]
+🛠️ Calling MCP tool 'get_figma_node' on server 'Figma Integration'
+🤖 Requesting Gemini stream from model: gemini-3-pro-preview
+Gemini Streaming Error: ClientError: got status: 400 Bad Request. {"error":{"message":"exception parsing response","code":400,"status":"Bad Request"}}
+    at throwErrorIfNotOK (/Users/sira/Documents/AXIO-FAST-CHAT/node_modules/@google/genai/dist/node/index.js:6280:33)
+    at /Users/sira/Documents/AXIO-FAST-CHAT/node_modules/@google/genai/dist/node/index.js:6112:19
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Models.generateContentStream (/Users/sira/Documents/AXIO-FAST-CHAT/node_modules/@google/genai/dist/node/index.js:2904:20)
+    at async generateAIResponseStream (file:///Users/sira/Documents/AXIO-FAST-CHAT/server/geminiService.js:531:28)
+    at async runTest (file:///Users/sira/Documents/AXIO-FAST-CHAT/test_figma_flowflow.js:41:26) {
+  [cause]: 'Error\n' +
+    '    at new ClientError (/Users/sira/Documents/AXIO-FAST-CHAT/node_modules/@google/genai/dist/node/index.js:5899:37)\n' +
+    '    at throwErrorIfNotOK (/Users/sira/Documents/AXIO-FAST-CHAT/node_modules/@google/genai/dist/node/index.js:6280:33)\n' +
+    '    at /Users/sira/Documents/AXIO-FAST-CHAT/node_modules/@google/genai/dist/node/index.js:6112:19\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async Models.generateContentStream (/Users/sira/Documents/AXIO-FAST-CHAT/node_modules/@google/genai/dist/node/index.js:2904:20)\n' +
+    '    at async generateAIResponseStream (file:///Users/sira/Documents/AXIO-FAST-CHAT/server/geminiService.js:531:28)\n' +
+    '    at async runTest (file:///Users/sira/Documents/AXIO-FAST-CHAT/test_figma_flowflow.js:41:26)'
+}
+
+❌ Test Failed: ClientError: got status: 400 Bad Request. {"error":{"message":"exception parsing response","code":400,"status":"Bad Request"}}
+    at throwErrorIfNotOK (/Users/sira/Documents/AXIO-FAST-CHAT/node_modules/@google/genai/dist/node/index.js:6280:33)
+    at /Users/sira/Documents/AXIO-FAST-CHAT/node_modules/@google/genai/dist/node/index.js:6112:19
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Models.generateContentStream (/Users/sira/Documents/AXIO-FAST-CHAT/node_modules/@google/genai/dist/node/index.js:2904:20)
+    at async generateAIResponseStream (file:///Users/sira/Documents/AXIO-FAST-CHAT/server/geminiService.js:531:28)
+    at async runTest (file:///Users/sira/Documents/AXIO-FAST-CHAT/test_figma_flowflow.js:41:26) {
+  [cause]: 'Error\n' +
+    '    at new ClientError (/Users/sira/Documents/AXIO-FAST-CHAT/node_modules/@google/genai/dist/node/index.js:5899:37)\n' +
+    '    at throwErrorIfNotOK (/Users/sira/Documents/AXIO-FAST-CHAT/node_modules/@google/genai/dist/node/index.js:6280:33)\n' +
+    '    at /Users/sira/Documents/AXIO-FAST-CHAT/node_modules/@google/genai/dist/node/index.js:6112:19\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async Models.generateContentStream (/Users/sira/Documents/AXIO-FAST-CHAT/node_modules/@google/genai/dist/node/index.js:2904:20)\n' +
+    '    at async generateAIResponseStream (file:///Users/sira/Documents/AXIO-FAST-CHAT/server/geminiService.js:531:28)\n' +
+    '    at async runTest (file:///Users/sira/Documents/AXIO-FAST-CHAT/test_figma_flowflow.js:41:26)'
+}

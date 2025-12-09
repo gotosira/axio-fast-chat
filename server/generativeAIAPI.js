@@ -3,10 +3,20 @@ import cors from 'cors';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import mammoth from 'mammoth'; // Added for DOCX support
+import TurndownService from 'turndown'; // Added for HTML to Markdown conversion
 import { v4 as uuidv4 } from 'uuid';
-import { generateAIResponse, generateAIResponseStream, generateTipOfTheDay } from './geminiService.js';
-import { conversationDB, messageDB, fileDB, supabase } from './supabaseDB.js';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pdf = require('pdf-parse'); // Added for PDF support
+import { generateAIResponse, generateAIResponseStream, generateTipOfTheDay, getSystemPrompt } from './geminiService.js';
+import { generateGroqResponseStream, generateGroqTipOfTheDay } from './groqService.js';
+import { generateCustomAgentResponseStream } from './customAgentService.js';
+
+
+import { conversationDB, messageDB, fileDB, folderDB, supabase } from './supabaseDB.js';
 import { mcpManager } from './mcp/McpClientManager.js';
+import { parseAxioIcons } from './utils/axioDocsParser.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,6 +28,9 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(cors());
 
+// Serve generated images
+app.use('/generated-images', express.static(path.join(process.cwd(), 'public/generated-images')));
+
 // Root route for health check
 app.get('/', (req, res) => {
     res.send('🤖 Generative AI API is running! Access the frontend app at http://localhost:5173');
@@ -26,31 +39,172 @@ app.get('/', (req, res) => {
 // Serve static files from the 'documents' directory (optional, for debugging)
 // app.use('/documents', express.static(path.join(__dirname, '../documents')));/AXIO-FAST-CHAT/documents/baobao';
 
-// Path to knowledge base - Relative for Vercel/Production
-const KNOWLEDGE_BASE_PATH = path.join(process.cwd(), 'documents/baobao');
+// Path to knowledge base - Dynamic based on AI
+const getKnowledgeBasePath = (aiId = 'baobao') => {
+    const aiPaths = {
+        'baobao': path.join(process.cwd(), 'documents/baobao'),
+        'flowflow': path.join(process.cwd(), 'documents/flowflow'),
+        'deedee': path.join(process.cwd(), 'documents/deedee'),
+        'pungpung': path.join(process.cwd(), 'documents/pungpung')
+    };
+    return aiPaths[aiId] || aiPaths['baobao'];
+};
+
+// Global cache for FlowFlow images
+const flowflowImageCache = new Map();
+let isImageCacheInitialized = false;
+
+// Initialize image cache from FlowFlow documents
+async function initializeFlowFlowImageCache() {
+    if (isImageCacheInitialized) return;
+
+    console.log('🖼️ Initializing FlowFlow image cache...');
+    const documents = await loadAllDocuments('flowflow');
+    const regex = /^\[(.*?)\]:\s*<?(data:image\/([^;]+);base64,([^>\n\r]+))>?/gm;
+
+    for (const doc of documents) {
+        let match;
+        // Reset lastIndex for each document content
+        while ((match = regex.exec(doc.content)) !== null) {
+            const imageId = match[1];
+            const fullDataUrl = match[2];
+            const mimeType = match[3];
+            const base64Data = match[4];
+
+            flowflowImageCache.set(imageId, {
+                mimeType,
+                data: Buffer.from(base64Data, 'base64')
+            });
+        }
+    }
+    isImageCacheInitialized = true;
+    console.log(`✅ FlowFlow image cache initialized with ${flowflowImageCache.size} images`);
+}
+
+// Serve FlowFlow images
+app.get('/api/images/:imageId', (req, res) => {
+    const { imageId } = req.params;
+    const image = flowflowImageCache.get(imageId);
+
+    if (image) {
+        res.setHeader('Content-Type', `image/${image.mimeType}`);
+        res.send(image.data);
+    } else {
+        res.status(404).send('Image not found');
+    }
+});
+
+// Initialize cache on server start
+initializeFlowFlowImageCache();
 
 /**
- * Read all files from the knowledge base
+ * Read all documents from the knowledge base for specific AI
  */
-async function loadAllDocuments() {
+async function loadAllDocuments(aiId = 'baobao') {
+    const KNOWLEDGE_BASE_PATH = getKnowledgeBasePath(aiId);
+
+    // FlowFlow uses Supabase Vector Store, so skip local file loading
+    if (aiId === 'flowflow') {
+        console.log('🌊 FlowFlow: Skipping local file loading (Using Supabase Vector Store)');
+        return [];
+    }
+
+    // Helper to get all files recursively
+    async function getFilesRecursively(dir) {
+        let results = [];
+        try {
+            const list = await fs.readdir(dir);
+            for (const file of list) {
+                if (file.startsWith('~$') || file === '.DS_Store') continue; // Ignore temp files
+                const filePath = path.join(dir, file);
+                const stat = await fs.stat(filePath);
+                if (stat && stat.isDirectory()) {
+                    results = results.concat(await getFilesRecursively(filePath));
+                } else {
+                    results.push(filePath);
+                }
+            }
+        } catch (e) {
+            console.error(`Error reading directory ${dir}:`, e);
+        }
+        return results;
+    }
+
     try {
-        const files = await fs.readdir(KNOWLEDGE_BASE_PATH);
+        const filePaths = await getFilesRecursively(KNOWLEDGE_BASE_PATH);
         const documents = [];
 
-        for (const file of files) {
-            // Only process .txt files (skip .docx and directories for now)
-            if (file.endsWith('.txt')) {
-                const filePath = path.join(KNOWLEDGE_BASE_PATH, file);
-                const stats = await fs.stat(filePath);
+        for (const filePath of filePaths) {
+            const fileName = path.basename(filePath);
 
-                if (stats.isFile()) {
-                    const content = await fs.readFile(filePath, 'utf-8');
+            try {
+                let content = '';
+                let shouldLoad = false;
+
+                if (fileName.endsWith('.docx')) {
+                    const buffer = await fs.readFile(filePath);
+
+                    if (aiId === 'flowflow') {
+                        console.log(`[DEBUG] Loading DOCX for FlowFlow (with images): ${fileName}`);
+                        // Custom image handler to save images to cache and return local URL
+                        const options = {
+                            convertImage: mammoth.images.imgElement(async (image) => {
+                                const buffer = await image.read();
+                                const contentType = image.contentType;
+                                const imageId = `img_${uuidv4()}`; // Generate unique ID
+
+                                // Store in global cache
+                                flowflowImageCache.set(imageId, {
+                                    mimeType: contentType.split('/')[1], // e.g. 'png' from 'image/png'
+                                    data: buffer
+                                });
+
+                                console.log(`[DEBUG] Extracted image from DOCX: ${imageId} (${contentType})`);
+
+                                // Return attributes for the <img> tag
+                                return {
+                                    src: `http://localhost:3001/api/images/${imageId}`,
+                                    alt: `Image from ${fileName}`
+                                };
+                            })
+                        };
+
+                        const result = await mammoth.convertToHtml({ buffer }, options);
+                        const html = result.value;
+
+                        // Convert HTML to Markdown
+                        const turndownService = new TurndownService();
+                        content = turndownService.turndown(html);
+                    } else {
+                        // For other AIs, just extract raw text
+                        console.log(`[DEBUG] Loading DOCX for ${aiId} (text only): ${fileName}`);
+                        const result = await mammoth.extractRawText({ buffer });
+                        content = result.value;
+                    }
+                    shouldLoad = true;
+
+                } else if (fileName.endsWith('.pdf')) {
+                    console.log(`[DEBUG] Loading PDF for ${aiId}: ${fileName}`);
+                    const buffer = await fs.readFile(filePath);
+                    const data = await pdf(buffer);
+                    content = data.text;
+                    shouldLoad = true;
+
+                } else if (fileName.endsWith('.md') || fileName.endsWith('.txt')) {
+                    content = await fs.readFile(filePath, 'utf-8');
+                    shouldLoad = true;
+                }
+
+                if (shouldLoad && content) {
                     documents.push({
-                        filename: file,
+                        filename: fileName, // Keep just filename for display/reference
+                        filepath: filePath, // Store full path if needed
                         content: content,
-                        category: categorizeFile(file)
+                        category: categorizeFile(fileName)
                     });
                 }
+            } catch (err) {
+                console.error(`[ERROR] Failed to parse file ${fileName}:`, err);
             }
         }
 
@@ -76,6 +230,7 @@ function categorizeFile(filename) {
     if (lower.includes('disability')) return 'Inclusive Language - Disability';
     if (lower.includes('medical')) return 'Inclusive Language - Medical';
     if (lower.includes('races')) return 'Inclusive Language - Races';
+    if (lower.includes('component')) return 'Components';
 
     return 'General';
 }
@@ -88,6 +243,7 @@ function categorizeFile(filename) {
  * Uses N-gram matching to support languages without spaces like Thai
  */
 function searchDocuments(documents, query) {
+    // console.log(`[DEBUG] searchDocuments called with query: "${query}"`);
     const queryLower = query.toLowerCase();
     // Split query into words for flexible matching (good for English)
     const queryWords = queryLower.split(/\s+/).filter(w => w.length > 1);
@@ -141,6 +297,7 @@ function searchDocuments(documents, query) {
         if (doc.category.toLowerCase().includes(queryLower)) score += 5;
 
         if (score > 1) { // Threshold to filter noise
+            console.log(`[DEBUG] Document "${doc.filename}" matched with score ${score}. Extracting excerpts...`);
             // Extract relevant excerpts
             const excerpts = extractRelevantExcerpts(doc.content, queryWords, queryTrigrams);
             results.push({
@@ -169,10 +326,29 @@ function generateNGrams(text, n) {
 
 /**
  * Extract relevant excerpts from content
+ * Also injects image definitions if referenced in the excerpt
  */
 function extractRelevantExcerpts(content, queryWords, queryTrigrams = [], maxExcerpts = 3) {
+    // console.log(`[DEBUG] extractRelevantExcerpts called`); // Commented out to reduce noise
     const lines = content.split('\n');
     const excerpts = [];
+
+    // Helper to find image definition
+    const findImageDefinition = (imageId) => {
+        // Look for [imageId]: data:image... at the end of content usually, but we search all lines
+        // Format: [image1]: <data:image/png;base64,...> or [image1]: data:image...
+        // Escape imageId for regex
+        const escapedImageId = imageId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`^\\[${escapedImageId}\\]:\\s*<?(data:image/[^>\\n\\r]+)>?`, 'm');
+        const match = content.match(regex);
+        if (match) {
+            // console.log(`[DEBUG] Found definition for ${imageId}`);
+            return match[0];
+        } else {
+            // console.log(`[DEBUG] Definition NOT found for ${imageId}`);
+            return null;
+        }
+    };
 
     for (let i = 0; i < lines.length && excerpts.length < maxExcerpts; i++) {
         const lineLower = lines[i].toLowerCase();
@@ -199,14 +375,35 @@ function extractRelevantExcerpts(content, queryWords, queryTrigrams = [], maxExc
         }
 
         if (hasMatch) {
-            // Get context: 2 lines before and after
-            const start = Math.max(0, i - 2);
-            const end = Math.min(lines.length, i + 3);
-            const excerpt = lines.slice(start, end).join('\n');
-            excerpts.push(excerpt.trim());
+            // Get context: 3 lines before and 5 lines after (expanded context)
+            const start = Math.max(0, i - 3);
+            const end = Math.min(lines.length, i + 6);
+            let excerptText = lines.slice(start, end).join('\n');
+
+            // Check for image references in this excerpt: ![][image1] or ![alt][image1]
+            const imageRefRegex = /!\[.*?\]\[(.*?)\]/g;
+            let imageMatch;
+            const imageDefinitions = [];
+
+            while ((imageMatch = imageRefRegex.exec(excerptText)) !== null) {
+                const imageId = imageMatch[1];
+                console.log(`[DEBUG] Found image ref: ${imageId} in excerpt`);
+                const definition = findImageDefinition(imageId);
+                if (definition) {
+                    imageDefinitions.push(definition);
+                }
+            }
+
+            // Append definitions if found
+            if (imageDefinitions.length > 0) {
+                excerptText += '\n\n' + imageDefinitions.join('\n');
+                console.log(`[DEBUG] Appended ${imageDefinitions.length} image definitions to excerpt`);
+            }
+
+            excerpts.push(excerptText.trim());
 
             // Skip ahead to avoid overlapping excerpts
-            i += 4;
+            i += 6;
         }
     }
 
@@ -220,13 +417,13 @@ function extractRelevantExcerpts(content, queryWords, queryTrigrams = [], maxExc
  */
 app.post('/api/search', async (req, res) => {
     try {
-        const { query } = req.body;
+        const { query, ai_id } = req.body;
 
         if (!query) {
             return res.status(400).json({ error: 'Query is required' });
         }
 
-        const documents = await loadAllDocuments();
+        const documents = await loadAllDocuments(ai_id);
         const results = searchDocuments(documents, query);
 
         res.json({
@@ -246,7 +443,8 @@ app.post('/api/search', async (req, res) => {
  */
 app.get('/api/documents', async (req, res) => {
     try {
-        const documents = await loadAllDocuments();
+        const { ai_id } = req.query;
+        const documents = await loadAllDocuments(ai_id);
         res.json({
             success: true,
             count: documents.length,
@@ -265,6 +463,9 @@ app.get('/api/documents', async (req, res) => {
 /**
  * Get specific document
  */
+
+
+
 app.get('/api/documents/:filename', async (req, res) => {
     try {
         const { filename } = req.params;
@@ -361,8 +562,8 @@ app.post('/api/conversations', async (req, res) => {
 app.put('/api/conversations/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { title } = req.body;
-        await conversationDB.update(id, { title });
+        const { title, folder_id } = req.body;
+        await conversationDB.update(id, { title, folder_id });
         res.json({ success: true });
     } catch (error) {
         console.error('Error updating conversation:', error);
@@ -382,10 +583,19 @@ app.patch('/api/conversations/:id/touch', async (req, res) => {
     }
 });
 
-// Delete a conversation
+// Delete a conversation or all conversations for an AI
 app.delete('/api/conversations/:id', async (req, res) => {
     try {
         const { id } = req.params;
+        const { ai_id } = req.query;
+
+        if (id === 'all') {
+            if (!ai_id) {
+                return res.status(400).json({ error: 'ai_id is required to clear history' });
+            }
+            await conversationDB.deleteAll(ai_id);
+            return res.json({ success: true });
+        }
         await conversationDB.delete(id);
         res.json({ success: true });
     } catch (error) {
@@ -394,32 +604,117 @@ app.delete('/api/conversations/:id', async (req, res) => {
     }
 });
 
+// ============ FOLDER MANAGEMENT ============
+
+// Get all folders
+app.get('/api/folders', async (req, res) => {
+    try {
+        const folders = await folderDB.getAll();
+        res.json(folders);
+    } catch (error) {
+        console.error('Error getting folders:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Create folder
+app.post('/api/folders', async (req, res) => {
+    // TODO: Add proper auth middleware to get user_id
+    // For now, we'll proceed without it, but in production this needs auth
+    try {
+        const folder = req.body;
+        // folder.user_id = req.user.id; // Uncomment when auth middleware is added
+        await folderDB.create(folder);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error creating folder:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Update folder
+app.put('/api/folders/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updates = req.body;
+        await folderDB.update(id, updates);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error updating folder:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Delete folder
+app.delete('/api/folders/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await folderDB.delete(id);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting folder:', error);
+        res.status(500).json({ error: 'Failed to delete folder' });
+    }
+});
+
 // --- Asset Library Endpoints ---
 
 // Upload a file
 app.post('/api/upload', async (req, res) => {
     try {
-        const { file, conversation_id } = req.body;
-        if (!file) {
-            return res.status(400).json({ error: 'No file provided' });
+        const { file, conversation_id, source = 'user_upload', prompt, ai_id } = req.body;
+
+        if (!file || !file.name || !file.data) {
+            return res.status(400).json({ error: 'Invalid file data' });
         }
 
-        const fileId = uuidv4();
-        const newFile = {
-            id: fileId,
-            conversation_id: conversation_id || null,
+        // Extract file metadata
+        const category = file.mimeType ? file.mimeType.split('/')[0] : 'unknown';
+
+        const asset = {
+            id: uuidv4(), // Use uuidv4 for consistency
             filename: file.name,
-            file_type: file.type.split('/')[0], // 'image', 'application', etc.
-            mime_type: file.type,
-            file_size: file.size,
-            storage_url: file.data, // Storing base64 for now
+            mime_type: file.mimeType || 'application/octet-stream',
+            storage_url: file.data, // Storing base64
+            conversation_id: conversation_id || null,
+            source: source,
+            file_type: category,
+            prompt: prompt || null,
+            file_size: file.size || (file.data ? file.data.length : 0),
+            created_at: Date.now()
         };
 
-        const savedFile = await fileDB.create(newFile);
-        res.json(savedFile);
+        await fileDB.create(asset);
+        console.log(`💾 Asset saved: ${asset.filename} (source: ${source}, type: ${category})`);
+
+        // Check if this is an AXIO documentation HTML file to index
+        if (file.name.endsWith('.html') || file.mimeType === 'text/html') {
+            console.log('📄 Detected HTML file upload. Attempting to parse for AXIO icons...');
+            try {
+                const htmlContent = Buffer.from(file.data, 'base64').toString('utf-8');
+                const icons = parseAxioIcons(htmlContent);
+
+                if (icons.length > 0) {
+                    const iconPath = path.join(process.cwd(), 'documents/flowflow/axio_icons.json');
+                    // Ensure directory exists
+                    await fs.mkdir(path.dirname(iconPath), { recursive: true });
+
+                    // Merge with existing if any? For now, overwrite or append?
+                    // Let's overwrite to keep it clean based on latest upload
+                    await fs.writeFile(iconPath, JSON.stringify(icons, null, 2));
+                    console.log(`📚 Indexed ${icons.length} icons from uploaded documentation to ${iconPath}`);
+                } else {
+                    console.log('⚠️ No icons found in uploaded HTML.');
+                }
+            } catch (parseError) {
+                console.error('❌ Failed to parse uploaded docs:', parseError);
+            }
+        }
+
+        res.json(asset);
     } catch (error) {
-        console.error('Error uploading file:', error);
-        res.status(500).json({ error: 'Failed to upload file' });
+        console.error('Upload error:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 
@@ -443,6 +738,27 @@ app.delete('/api/assets/:id', async (req, res) => {
     } catch (error) {
         console.error('Error deleting asset:', error);
         res.status(500).json({ error: 'Failed to delete asset' });
+    }
+});
+
+// Update/Rename an asset
+app.put('/api/assets/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { filename } = req.body;
+
+        console.log('📝 Rename request received:', { id, filename });
+
+        if (!filename) {
+            return res.status(400).json({ error: 'Filename is required' });
+        }
+
+        const result = await fileDB.update(id, { filename });
+        console.log('✅ Rename successful:', result);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.error('❌ Error updating asset:', error);
+        res.status(500).json({ error: 'Failed to update asset', details: error.message });
     }
 });
 
@@ -568,10 +884,87 @@ app.post('/api/chat', async (req, res) => {
         }
 
         // Search knowledge base
-        const documents = await loadAllDocuments();
-        const searchResults = message ? searchDocuments(documents, message) : [];
+        const documents = await loadAllDocuments(ai_id);
+        console.error(`[DEBUG] /api/chat: Loaded ${documents.length} documents`);
 
-        console.log(`💬 [${ai_id || 'baobao'}] Query: "${message || '[File Upload]'}" - Found ${searchResults.length} results`);
+        // For FlowFlow: load ALL documents for comprehensive design analysis
+        // But chunk content to keep more of each doc without blowing up tokens
+        // For other AIs: use search results
+        let searchResults;
+
+        if (ai_id === 'flowflow') {
+            // Ensure cache is initialized
+            if (!isImageCacheInitialized) {
+                await initializeFlowFlowImageCache();
+            }
+
+            // Prepare query for search
+            const queryLower = message.toLowerCase();
+            const queryWords = queryLower.split(/\s+/).filter(w => w.length > 1);
+            const queryTrigrams = generateNGrams(queryLower, 3);
+
+            // Process full document content with image URL injection
+            const processFullDocument = (text) => {
+                let processedText = text;
+                const imageRefRegex = /!\[.*?\]\[(.*?)\]/g;
+                let imageMatch;
+                const usedDefinitions = new Set();
+                const definitionsToAppend = [];
+
+                while ((imageMatch = imageRefRegex.exec(text)) !== null) {
+                    const imageId = imageMatch[1];
+                    if (!usedDefinitions.has(imageId) && flowflowImageCache.has(imageId)) {
+                        const urlDefinition = `[${imageId}]: http://localhost:${PORT}/api/images/${imageId}`;
+                        definitionsToAppend.push(urlDefinition);
+                        usedDefinitions.add(imageId);
+                    }
+                }
+
+                if (definitionsToAppend.length > 0) {
+                    processedText += '\n\n' + definitionsToAppend.join('\n');
+                }
+                return processedText;
+            };
+
+            // Load ALL documents fully for FlowFlow to enable "real-time scan" by the AI
+            // We rely on Gemini's large context window to handle the full content of all DOCX files.
+
+            // 1. Score documents based on query relevance
+            // Bypass scoring and filtering. Use ALL documents.
+            const docsToProcess = documents;
+
+            searchResults = docsToProcess.map(doc => {
+                let fullContent = processFullDocument(doc.content);
+
+                // Safety truncation: Limit to 300,000 characters (~60k tokens) per doc to allow multiple docs
+                if (fullContent.length > 300000) {
+                    console.warn(`[WARNING] Document ${doc.filename} is too large (${fullContent.length} chars). Truncating to 300k chars.`);
+                    fullContent = fullContent.slice(0, 300000) + '\n...[Content Truncated]...';
+                }
+
+                console.log(`[DEBUG] FlowFlow Context: Using ${doc.filename} (${fullContent.length} chars)`);
+
+                return {
+                    filename: doc.filename,
+                    category: doc.category,
+                    excerpts: [fullContent] // Pass full content as a single "excerpt"
+                };
+            });
+            console.log(`💬 [${ai_id}] Query: "${message || '[File Upload]'}" - Loaded ALL ${searchResults.length} documents with hybrid retrieval`);
+        } else if (ai_id === 'baobao') {
+            // For BaoBao, ALWAYS load ALL documents fully (no search/filtering)
+            searchResults = documents.map(doc => {
+                return {
+                    filename: doc.filename,
+                    category: doc.category,
+                    excerpts: [doc.content] // Pass full content
+                };
+            });
+            console.log(`💬 [${ai_id}] Query: "${message || '[File Upload]'}" - Loaded ALL ${searchResults.length} documents for Deep Reasoning`);
+        } else {
+            searchResults = message ? searchDocuments(documents, message) : [];
+            console.log(`💬 [${ai_id || 'baobao'}] Query: "${message || '[File Upload]'}" - Found ${searchResults.length} results`);
+        }
 
         // Fetch conversation history
         let history = [];
@@ -602,8 +995,48 @@ app.post('/api/chat', async (req, res) => {
             const results = searchResults;
             const fileData = file;
 
-            // Generate response using Gemini with Streaming
-            const stream = generateAIResponseStream(query, results, fileData, location, ai_id || 'baobao', history);
+            // Generate response using Gemini or Groq with Streaming
+            let stream;
+
+            // Check if there is an image file attached
+            const isImage = fileData && fileData.mimeType && fileData.mimeType.startsWith('image/');
+
+            if (['baobao', 'flowflow', 'pungpung', 'deedee'].includes(ai_id) && !isImage) {
+
+                // Special check for FlowFlow Image Generation Intent
+                const imageKeywords = ['generate image', 'draw', 'create image', 'วาดรูป', 'สร้างรูป', 'gen รูป', 'เจนรูป', 'edit image', 'แก้รูป', 'เพิ่ม', 'ลบ', 'เปลี่ยน', 'logo', 'icon', 'image', 'picture', 'photo', 'background', 'bg', 'color', 'style', 'ภาพ', 'รูป', 'สี', 'พื้นหลัง', 'โลโก้', 'ไอคอน'];
+                const isFlowFlowImageRequest = ai_id === 'flowflow' && imageKeywords.some(keyword => query.toLowerCase().includes(keyword));
+
+                if (isFlowFlowImageRequest) {
+                    console.log(`🎨 FlowFlow Image Request detected via routing. Switching to Gemini...`);
+                    stream = generateAIResponseStream(query, results, fileData, location, ai_id, history);
+                } else {
+                    console.log(`🚀 Using Groq for ${ai_id}`);
+
+                    // Get MCP Tools
+                    const mcpTools = await mcpManager.getTools();
+                    const groqTools = mcpTools.map(t => ({
+                        type: "function",
+                        function: {
+                            name: mcpManager._sanitizeToolName(t.name),
+                            description: t.description,
+                            parameters: t.inputSchema
+                        }
+                    }));
+
+                    const toolExecutor = async (name, args) => {
+                        return await mcpManager.callTool(name, args);
+                    };
+
+                    stream = generateGroqResponseStream(query, results, fileData, location, ai_id, history, groqTools, toolExecutor);
+                }
+            } else if (ai_id === 'flowflowgpt5' || ai_id === 'baobaogpt5') {
+                console.log(`🚀 Using Custom Agent for ${ai_id}`);
+                const systemPrompt = getSystemPrompt(ai_id);
+                stream = generateCustomAgentResponseStream(query, results, fileData, location, ai_id, history, systemPrompt);
+            } else {
+                stream = generateAIResponseStream(query, results, fileData, location, ai_id || 'baobao', history);
+            }
 
             // Stream chunks as they arrive
             let buffer = '';
@@ -711,7 +1144,16 @@ app.post('/api/chat', async (req, res) => {
             console.error('Gemini error:', geminiError);
 
             // Fallback response if Gemini fails
-            const fallbackText = `สวัสดีครับ! 🐕 ขออภัยครับ ตอนนี้เบาเบามีปัญหาในการเชื่อมต่อกับระบบ AI นิดหน่อย 😅 (Error: ${geminiError.message})\n\nแต่เบาเบาเจอข้อมูลที่เกี่ยวข้องในคลังเอกสารแล้วนะครับ!\n\n${searchResults.length > 0 ? `พบข้อมูล ${searchResults.length} รายการในหมวดหมู่: ${searchResults.slice(0, 3).map(r => r.category).join(', ')}` : 'ไม่พบข้อมูลที่เกี่ยวข้อง'}\n\nลองถามใหม่อีกครั้งนะครับ! ✨`;
+            // Fallback response if Gemini fails
+            const aiGreetings = {
+                baobao: { name: 'เบาเบา', emoji: '🐕' },
+                deedee: { name: 'ดีดี', emoji: '🦌' },
+                pungpung: { name: 'ปังปัง', emoji: '🦉' },
+                flowflow: { name: 'โฟลว์โฟลว์', emoji: '🐙' }
+            };
+            const currentAI = aiGreetings[ai_id] || aiGreetings.baobao;
+
+            const fallbackText = `สวัสดีครับ! ${currentAI.emoji} ขออภัยครับ ตอนนี้${currentAI.name}มีปัญหาในการเชื่อมต่อกับระบบ AI นิดหน่อย 😅 (Error: ${geminiError.message})\n\nแต่${currentAI.name}เจอข้อมูลที่เกี่ยวข้องในคลังเอกสารแล้วนะครับ!\n\n${searchResults.length > 0 ? `พบข้อมูล ${searchResults.length} รายการในหมวดหมู่: ${searchResults.slice(0, 3).map(r => r.category).join(', ')}` : 'ไม่พบข้อมูลที่เกี่ยวข้อง'}\n\nลองถามใหม่อีกครั้งนะครับ! ✨`;
 
             res.write(`data: ${JSON.stringify({ text: fallbackText })}\n\n`);
             res.write('data: [DONE]\n\n');
@@ -753,56 +1195,151 @@ async function ensureSchema() {
 // API: Get random tip of the day from knowledge base
 app.get('/api/tip-of-the-day', async (req, res) => {
     try {
-        const documents = await loadAllDocuments();
-        console.log(`📚 Loaded ${documents.length} documents for tip`);
+        const { ai_id } = req.query;
+        let randomChunk = '';
+        let filename = 'Unknown File';
+        let category = 'General';
 
-        if (documents.length === 0) {
-            return res.json({ tip: 'ยินดีต้อนรับสู่ BaoBao AI! พร้อมช่วยเหลือคุณเรื่อง UX writing แล้ว 🐕' });
+        // Special handling for FlowFlow (Supabase Vector Store)
+        if (ai_id === 'flowflow') {
+            console.log('🌊 FlowFlow: Fetching random tip from Supabase...');
+
+            // 1. Get total count
+            const { count, error: countError } = await supabase
+                .from('documents')
+                .select('*', { count: 'exact', head: true })
+                .contains('metadata', { ai_id: 'flowflow' });
+
+            if (countError || !count) {
+                console.warn('⚠️ FlowFlow: No documents in Supabase for tip.');
+                return res.json({ tip: 'ยินดีต้อนรับสู่ FlowFlow! พร้อมช่วยคุณค้นหาข้อมูล Design System แล้วครับ 🐙' });
+            }
+
+            // 2. Get random row
+            const randomOffset = Math.floor(Math.random() * count);
+            const { data, error } = await supabase
+                .from('documents')
+                .select('content, metadata')
+                .contains('metadata', { ai_id: 'flowflow' })
+                .range(randomOffset, randomOffset)
+                .maybeSingle();
+
+            if (error || !data) {
+                console.error('❌ FlowFlow: Error fetching random tip:', error);
+                return res.json({ tip: 'ยินดีต้อนรับสู่ FlowFlow! พร้อมช่วยคุณค้นหาข้อมูล Design System แล้วครับ 🐙' });
+            }
+
+            randomChunk = data.content;
+            filename = data.metadata?.filename || 'Unknown';
+            category = 'Design System'; // Default category
+            console.log(`📄 Selected Supabase doc: ${filename}`);
+
+        } else {
+            // Legacy handling for other AIs (Local Files)
+            console.log(`📚 Loaded ${await loadAllDocuments(ai_id).then(d => d.length)} documents for tip`);
+            const documents = await loadAllDocuments(ai_id);
+
+            if (documents.length === 0) {
+                return res.json({ tip: 'ยินดีต้อนรับสู่ BaoBao AI! พร้อมช่วยเหลือคุณเรื่อง UX writing แล้ว 🐕' });
+            }
+
+            // Get a random document
+            const randomDoc = documents[Math.floor(Math.random() * documents.length)];
+            console.log(`📄 Selected document: ${randomDoc.filename} (${randomDoc.category})`);
+            filename = randomDoc.filename;
+            category = randomDoc.category;
+
+            // Get a random chunk from the content (max 2000 chars)
+            const content = randomDoc.content;
+            console.log(`[DEBUG] Selected doc content length: ${content.length}`);
+
+            const maxChunkSize = 2000;
+            let attempts = 0;
+            const maxAttempts = 5;
+
+            // Try to find a chunk that isn't just base64 data
+            while (attempts < maxAttempts) {
+                if (content.length > maxChunkSize) {
+                    const maxStart = content.length - maxChunkSize;
+                    const randomStart = Math.floor(Math.random() * maxStart);
+                    randomChunk = content.substring(randomStart, randomStart + maxChunkSize);
+                } else {
+                    randomChunk = content;
+                    break; // Content is small enough, just use it
+                }
+
+                // Check if chunk looks like base64 (long continuous strings without spaces)
+                const longestWord = randomChunk.split(/\s+/).reduce((a, b) => {
+                    if (b.startsWith('http')) return a;
+                    return a.length > b.length ? a : b;
+                }, '');
+
+                if (longestWord.length < 100) {
+                    break; // Found a good chunk
+                }
+
+                console.log(`[DEBUG] Attempt ${attempts + 1}: Chunk rejected`);
+                attempts++;
+            }
         }
 
-        // Get a random document
-        const randomDoc = documents[Math.floor(Math.random() * documents.length)];
-        console.log(`📄 Selected document: ${randomDoc.filename} (${randomDoc.category})`);
+        console.log(`[DEBUG] Random chunk length: ${randomChunk.length}`);
+        console.log(`[DEBUG] Random chunk preview: ${randomChunk.substring(0, 100)}...`);
 
         // Get AI ID from query parameter
         const aiId = req.query.ai_id || 'baobao';
-        console.log(`🤖 Generating tip for AI: ${aiId}`);
 
         // AI-specific tip prompts
         const tipPrompts = {
-            baobao: `จากเนื้อหานี้: "${randomDoc.content.substring(0, 2000)}"
+            baobao: `จากเนื้อหานี้ (ตัดตอนมา): "...${randomChunk}..."
 
-สร้าง UX Writing tip ที่กระชับ น่าสนใจ และเป็นประโยชน์ (2-4 ประโยค) เป็นภาษาไทย โดยอ้างอิงจากข้อมูลด้านบน`,
+สร้าง UX Writing tip ที่กระชับ น่าสนใจ และเป็นประโยชน์ (2-4 ประโยค) เป็นภาษาไทย โดยอ้างอิงจากข้อมูลด้านบน ถ้าข้อมูลไม่พอให้สร้าง tip ทั่วไปเกี่ยวกับ UX Writing แทน`,
 
-            deedee: `สร้าง tip เกี่ยวกับ Google Analytics และการติดตาม Custom Events (2-4 ประโยค) เป็นภาษาไทย
-ให้เน้นเรื่อง:
-- การออกแบบ event tracking ที่ดี
-- หลักการ naming convention
-- การเลือก parameters ที่เหมาะสม
-- การ mapping กับ user journey`,
+            deedee: `จากเนื้อหานี้ (ตัดตอนมา): "...${randomChunk}..."
 
-            pungpung: `สร้าง tip เกี่ยวกับการวิเคราะห์ Feedback และ CSAT (2-4 ประโยค) เป็นภาษาไทย
-ให้เน้นเรื่อง:
-- การเปลี่ยน Feedback เป็น Actionable Insight
-- การวิเคราะห์ Root Cause ของปัญหา
-- การจัดลำดับความสำคัญของปัญหา UX`,
+สร้าง Data/Analytics tip ที่กระชับและเป็นประโยชน์ (2-4 ประโยค) เป็นภาษาไทย โดยอ้างอิงจากข้อมูลด้านบน ถ้าข้อมูลไม่พอให้สร้าง tip ทั่วไปเกี่ยวกับ Google Analytics แทน`,
 
-            flowflow: `สร้าง tip เกี่ยวกับ Workflow Optimization และ Process Design (2-4 ประโยค) เป็นภาษาไทย
-ให้เน้นเรื่อง:
-- การออกแบบ workflow ที่มีประสิทธิภาพ
-- การลดขั้นตอนที่ไม่จำเป็น
-- การปรับปรุงกระบวนการทำงาน`
+            pungpung: `จากเนื้อหานี้ (ตัดตอนมา): "...${randomChunk}..."
+
+สร้าง Creative/Feedback tip ที่กระชับและเป็นประโยชน์ (2-4 ประโยค) เป็นภาษาไทย โดยอ้างอิงจากข้อมูลด้านบน ถ้าข้อมูลไม่พอให้สร้าง tip ทั่วไปเกี่ยวกับการจัดการ Feedback แทน`,
+
+            flowflow: `จากเนื้อหานี้ (ตัดตอนมา): "...${randomChunk}..."
+            
+คำสั่ง: สร้าง Design System/Workflow tip ที่กระชับและเป็นประโยชน์ (2-4 ประโยค) เป็นภาษาไทย โดยอ้างอิงจากข้อมูลด้านบน
+- ถ้าเป็นเรื่อง Component ให้แนะนำวิธีใช้
+- ถ้าเป็นเรื่อง Foundation ให้แนะนำหลักการ
+- เน้นความ "เฉียบคม" และ "มืออาชีพ"
+
+ข้อควรระวัง: ห้ามถามหาข้อมูลเพิ่ม ถ้าข้อมูลในเนื้อหาไม่เพียงพอ หรือเป็นเพียง Code/Base64 ให้สร้าง Tip ทั่วไปเกี่ยวกับ ${category || 'Design System'} แทนทันที`,
+
+            flowflowgpt5: `จากเนื้อหานี้ (ตัดตอนมา): "...${randomChunk}..."
+            
+คำสั่ง: สร้าง Design System/Workflow tip ที่กระชับและเป็นประโยชน์ (2-4 ประโยค) เป็นภาษาไทย โดยอ้างอิงจากข้อมูลด้านบน
+- ถ้าเป็นเรื่อง Component ให้แนะนำวิธีใช้
+- ถ้าเป็นเรื่อง Foundation ให้แนะนำหลักการ
+- เน้นความ "เฉียบคม" และ "มืออาชีพ"
+
+ข้อควรระวัง: ห้ามถามหาข้อมูลเพิ่ม ถ้าข้อมูลในเนื้อหาไม่เพียงพอ หรือเป็นเพียง Code/Base64 ให้สร้าง Tip ทั่วไปเกี่ยวกับ ${category || 'Design System'} แทนทันที`,
+
+            baobaogpt5: `จากเนื้อหานี้ (ตัดตอนมา): "...${randomChunk}..."
+
+คำสั่ง: สร้าง UX Writing tip ที่กระชับและเป็นประโยชน์ (2-4 ประโยค) เป็นภาษาไทย โดยอ้างอิงจากข้อมูลด้านบน
+- ถ้าเป็นเรื่อง Tone of Voice ให้แนะนำการใช้
+- ถ้าเป็นเรื่อง Grammar ให้แนะนำสิ่งที่ถูกต้อง
+- เน้นความ "เป็นกันเอง" และ "เข้าใจง่าย"
+
+ข้อควรระวัง: ห้ามถามหาข้อมูลเพิ่ม ถ้าข้อมูลในเนื้อหาไม่เพียงพอ หรือเป็นเพียง Code/Base64 ให้สร้าง Tip ทั่วไปเกี่ยวกับ ${category || 'UX Writing'} แทนทันที`
         };
 
-        // Use Gemini to generate a meaningful tip
+        // Use Groq to generate a meaningful tip
         const tipPrompt = tipPrompts[aiId] || tipPrompts.baobao;
-        const tipContent = await generateTipOfTheDay(tipPrompt, randomDoc.category, aiId);
+        const tipContent = await generateGroqTipOfTheDay(tipPrompt, category, aiId);
         console.log(`✨ Generated tip for ${aiId}: ${tipContent.substring(0, 100)}...`);
 
         res.json({
             tip: tipContent.trim(),
-            category: randomDoc.category,
-            source: randomDoc.filename,
+            category: category,
+            source: filename,
             ai_id: aiId
         });
     } catch (error) {
@@ -812,7 +1349,9 @@ app.get('/api/tip-of-the-day', async (req, res) => {
             baobao: 'ยินดีต้อนรับสู่ BaoBao AI! พร้อมช่วยเหลือคุณเรื่อง UX writing แล้ว 🐕',
             deedee: 'ยินดีต้อนรับค่ะ! DeeDee พร้อมช่วยวิเคราะห์ข้อมูลและออกแบบ Google Analytics แล้ว 🦌',
             pungpung: 'ยินดีต้อนรับค่ะ! PungPung พร้อมช่วยเขียน Creative Content แล้ว 🐝',
-            flowflow: 'ยินดีต้อนรับครับ! FlowFlow พร้อมช่วยออกแบบ Workflow แล้ว 🌊'
+            flowflow: 'ยินดีต้อนรับสู่ FlowFlow AI! พร้อมช่วยเหลือคุณเรื่อง Design System แล้ว 🐙',
+            flowflowgpt5: 'ยินดีต้อนรับสู่ FlowFlow (AI-Team)! พร้อมช่วยเหลือคุณเรื่อง Design System แล้ว 🐙',
+            baobaogpt5: 'ยินดีต้อนรับสู่ BaoBao (AI-Team)! พร้อมช่วยเหลือคุณเรื่อง UX writing แล้ว 🐕'
         };
         res.json({ tip: fallbackTips[aiId] || fallbackTips.baobao });
     }
@@ -904,11 +1443,46 @@ app.post('/api/mcp/disconnect', async (req, res) => {
     }
 });
 
+// Image Generation endpoint
+app.post('/api/generate-image', async (req, res) => {
+    try {
+        const { prompt, ai_id } = req.body;
+        console.log('🎨 Image generation request:', { prompt, ai_id });
+
+        // Load FlowFlow documents for context
+        const documents = await loadAllDocuments('flowflow');
+
+        // Summarize documents into concise design context
+        const designContext = documents
+            .map(doc => `${doc.category}: ${doc.content.substring(0, 500)}`)
+            .join('\n\n')
+            .substring(0, 8000); // Limit to 8K chars for reasonable context
+
+        console.log(`📚 Loaded ${documents.length} FlowFlow documents for image context`);
+
+        const { generateDesignImage } = await import('./imageGenerator.js');
+        const result = await generateDesignImage(prompt, designContext);
+
+        res.json({
+            success: true,
+            imageUrl: result.imageUrl,
+            filename: result.filename
+        });
+    } catch (error) {
+        console.error('Image generation error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Only listen if run directly
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
     app.listen(PORT, () => {
         console.log(`🤖 Generative AI API running on http://localhost:${PORT}`);
-        console.log(`📚 Knowledge base: ${KNOWLEDGE_BASE_PATH}`);
+        console.log(`📚 Knowledge bases:`);
+        console.log(`   - BaoBao: ${getKnowledgeBasePath('baobao')}`);
+        console.log(`   - FlowFlow: ${getKnowledgeBasePath('flowflow')}`);
+        console.log(`   - DeeDee: ${getKnowledgeBasePath('deedee')}`);
+        console.log(`   - PungPung: ${getKnowledgeBasePath('pungpung')}`);
         ensureSchema();
         initMcpServers();
     });

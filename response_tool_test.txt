@@ -1,0 +1,60 @@
+data: {"type":"thinking","text":"จากการค้นหาในคลังเอกสาร พบข้อมูลเกี่ยวกับ \"Logo\" ในไฟล์ `_AXIO Design System - Foundation.docx` ซึ่งระบุรายละเอียดของ **AXONS Corporate Logo** (สี, การจัดวาง, ขนาดขั้นต่ำ) และ **App Icon** (Grid, Anatomy) รวมถึงพบลิงก์ Figma Template ที่มี Logo ใช้งานอยู่ในไฟล์ `_List of Design Template or Pattern.docx` ครับ"}
+
+data: {"type":"text","text":"## AXONS Corporate Logo & App Icon\n\nจากการค้นหาข้อมูล พบรายละเอียดเกี่ยวกับ Logo และ Icon Design System ดัง"}
+
+data: {"type":"text","text":"นี้ครับ\n\n### 1. Corporate Logo Colors (สีประจำโลโก้)\nสีของโลโก้ AX"}
+
+data: {"type":"text","text":"ONS ประกอบด้วย 3 สีหลัก ซึ่งต้องใช้งานอย่างเคร่งครัดตามค่าสีที่กำหนด:\n\n*   🟢"}
+
+data: {"type":"text","text":" **Green**: `#22AB68` (RGB: 34, 171, 104)"}
+
+data: {"type":"text","text":"\n*   🔵 **Driven Blue**: `#074E9F` (RGB: 7, 7"}
+
+data: {"type":"text","text":"8, 159)\n*   ⚫ **Black**: `#3B3A3C` (RGB"}
+
+data: {"type":"text","text":": 59, 58, 60)\n\n### 2. ข้อกำหนดการใช้งาน (Logo Usage"}
+
+data: {"type":"text","text":" Guidelines)\n*   **Minimum Size**: ห้ามเล็กกว่า **10 mm** หรือ **106 pixels**\n"}
+
+data: {"type":"text","text":"*   **Clear Space**:\n    *   ด้านซ้าย-ขวา: เท่ากับความกว้างของตัวอักษร"}
+
+data: {"type":"text","text":" \"A\" สองตัว (2 vertical \"A's\")\n    *   ด้านบน-ล่าง: เท่า"}
+
+data: {"type":"text","text":"กับความสูงของตัวอักษร \"A\" หนึ่งตัว (1 horizontal \"A\")\n*   **Background"}
+
+data: {"type":"text","text":" Usage**:\n    *   **Single Version**: ใช้เมื่อพื้นหลังเรียบง่าย\n    *   **Reverse Version**:"}
+
+data: {"type":"text","text":" ใช้เมื่อพื้นหลังมีสีเข้มหรือสีที่ทำให้ Logo ปกติไม่ชัดเจน\n\n### 3. App Icon Design"}
+
+data: {"type":"text","text":" (สำหรับ Mobile/Web App)\nหากคุณกำลังมองหา **App Icon** หรือการออกแบบไอคอนแอปพลิเคชัน"}
+
+data: {"type":"text","text":":\n*   **Pixel Grid**: 24dp\n*   **Live Area**: 20dp (พื้นที่แสดง"}
+
+data: {"type":"text","text":"ผลหลัก)\n*   **Padding**: 2dp (ระยะห่างจากขอบ)\n*   **Radius**:"}
+
+data: {"type":"text","text":" มีการกำหนด Round corners ตามมาตรฐาน\n\n### 🔗 แหล่งดาวน์โหลดและอ้างอิง (Figma)"}
+
+data: {"type":"text","text":"\nเนื่องจากในเอกสารไม่มีลิงก์ไฟล์รูปภาพ Logo โดยตรง แต่คุณสามารถพบ Logo ต้นฉบับได้"}
+
+data: {"type":"text","text":"ใน **Design System Templates** ตามลิงก์นี้ครับ:\n\n*   **Design System Template - Web responsive**:"}
+
+data: {"type":"text","text":" [Figma Link](https://www.figma.com/design/7RGdahRWtOuGE2"}
+
+data: {"type":"text","text":"yd97ecTh/Design-System-Template---Web-responsive?m=auto&t=2RF"}
+
+data: {"type":"text","text":"wMhVcua4iw98O-6)\n*   **Design System Template - Mobile Application**:"}
+
+data: {"type":"text","text":" [Figma Link](https://www.figma.com/design/aYqNGOR51Y"}
+
+data: {"type":"text","text":"uwHGbtU0edzM/Design-System-Template---Mobile-Application?m=auto&t"}
+
+data: {"type":"text","text":"=2RFwMhVcua4iw98O-6)\n\n**📄 อ้างอิงจากไฟล์:**\n"}
+
+data: {"type":"text","text":"*   `_AXIO Design System - Foundation.docx` (หมวด Branding & App Icon)\n*   `_"}
+
+data: {"type":"text","text":"List of Design Template or Pattern.docx`"}
+
+data: {"type":"references","files":"_AXIO Design System - Foundation.docx, _Component List.docx, _Component Overview.docx, _List of Design Template or Pattern.docx, _List of System Icon.docx"}
+
+data: [DONE]
+

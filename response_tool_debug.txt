@@ -1,0 +1,42 @@
+data: {"type":"thinking","text":"จากการค้นหาข้อมูลในไฟล์ `_AXIO Design System - Foundation.docx` พบข้อมูลเกี่ยวกับ **Corporate Logo** (Branding) และ **App Icon** (Product Logo) ซึ่งเป็นข้อมูลที่ตรงกับคำว่า \"logo icon\" มากที่สุดครับ"}
+
+data: {"type":"text","text":"## ข้อมูล AXONS Logo & App Icon\n\nจากการตรวจสอบ"}
+
+data: {"type":"text","text":"ในคลังเอกสาร ข้อมูลเกี่ยวกับ Logo ถูกระบุไว้ในหมวด Branding และ App Icon Design โดยมีรายละเอียดดัง"}
+
+data: {"type":"text","text":"นี้ครับ\n\n### 1. Corporate Logo Colors (สีมาตรฐานของ Logo)\nอ้างอิงจากไฟล์: `_"}
+
+data: {"type":"text","text":"AXIO Design System - Foundation.docx`\nต้องใช้ค่าสีตามที่กำหนดเท่านั้นเพื่อความเป็นเอกภาพของแบรนด์"}
+
+data: {"type":"text","text":":\n*   🟢 **Green:** `#22AB68` (RGB: 34, 1"}
+
+data: {"type":"text","text":"71, 104)\n*   🔵 **Driven Blue:** `#074E9F"}
+
+data: {"type":"text","text":"` (RGB: 7, 78, 159)\n*   ⚫ **Black:** `#3"}
+
+data: {"type":"text","text":"B3A3C` (RGB: 59, 58, 60)\n\n### "}
+
+data: {"type":"text","text":"2. App Icon / Product Logo Guidelines\nสำหรับการออกแบบไอคอนแอปพลิเคชัน (App Icon) จะใช้ Grid System ขนาด"}
+
+data: {"type":"text","text":" 24dp:\n*   **Pixel Grid:** 24dp\n*   **Live Area:** 20"}
+
+data: {"type":"text","text":"dp (พื้นที่สำหรับวาง Graphic หลัก)\n*   **Padding:** 2dp (ระยะเว้นขอบรอบ"}
+
+data: {"type":"text","text":"ด้าน)\n*   **Minimum Size:** ไม่ควรใช้ Logo ขนาดเล็กกว่า 10 mm หรือ 106"}
+
+data: {"type":"text","text":" pixels\n\n### 🔗 Figma Assets\nสามารถเข้าไปดู Design Assets ได้ที่ลิงก์นี้ครับ:\n*   **Design System"}
+
+data: {"type":"text","text":" Foundation:** [Figma Link](https://www.figma.com/design/TvOoz41a"}
+
+data: {"type":"text","text":"M5FWLQuTlEvrzA/%E2%9C%85-Design-System-Foundation"}
+
+data: {"type":"text","text":"?node-id=16-807&t=kkHoURLS8RjUsC7"}
+
+data: {"type":"text","text":"G-1) (อ้างอิงจากไฟล์ `_List of System Icon.docx`)\n\nหากคุณกำลังมองหา System"}
+
+data: {"type":"text","text":" Icon ตัวอื่นเฉพาะเจาะจง (เช่น Home, User, Setting) แจ้งชื่อมาได้เลยนะครับ!"}
+
+data: {"type":"references","files":"_AXIO Design System - Foundation.docx, _Component List.docx, _Component Overview.docx, _List of Design Template or Pattern.docx, _List of System Icon.docx"}
+
+data: [DONE]
+

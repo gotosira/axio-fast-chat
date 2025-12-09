@@ -12,12 +12,65 @@ import { ProfilePanel } from './components/ProfilePanel.jsx';
 import { useConversations } from './hooks/useConversations.js';
 import { ChevronRight, FileText, X, Plus, MoreHorizontal, Mic, Send, Menu, Bell, Server, PanelLeft } from 'lucide-react';
 import { McpConnectionModal } from './components/McpConnectionModal.jsx';
+import { WelcomeModal } from './components/WelcomeModal.jsx';
+import ImageEditModal from './components/ImageEditModal.jsx';
+import ImageGenerationModal from './components/ImageGenerationModal.jsx';
+
+// ... existing imports ...
+
+
+import { useAuth } from './hooks/useAuth.js';
+import { AuthPages } from './components/auth/AuthPages.jsx';
 
 /* -------------------------------------------------------------------------- */
 /* 1. LOGIC HOOK                               */
 /* -------------------------------------------------------------------------- */
 
-function useFastChat(callbacks, { currentConversationId, createConversation, setCurrentConversationId, selectedAI, saveMessage }) {
+function detectImageGenerationIntent(text) {
+  if (!text) return null;
+  const lowerText = text.toLowerCase();
+
+  // Ignore if it contains a URL (likely asking to analyze something)
+  if (lowerText.includes('http') || lowerText.includes('www.') || lowerText.includes('figma.com')) {
+    return null;
+  }
+
+  const highConfidenceKeywords = ['วาด', 'สร้างภาพ', 'เขียนแบบ', 'ร่าง wireframe', 'ร่างแบบ', 'mockup', 'wireframe', 'sketch', 'design mockup'];
+  // Removed generic 'design' to avoid false positives
+  const mediumConfidenceKeywords = ['ออกแบบ', 'สร้าง ui', 'สร้าง component', 'ทำ mockup', 'create ui', 'make mockup'];
+
+  for (const keyword of highConfidenceKeywords) {
+    if (lowerText.includes(keyword)) return 'high';
+  }
+  for (const keyword of mediumConfidenceKeywords) {
+    if (lowerText.includes(keyword)) return 'medium';
+  }
+  return null;
+}
+
+// Generate conversation title from user message
+function generateConversationTitle(message) {
+  if (!message) return 'New Conversation';
+
+  // Remove extra whitespace and newlines
+  const cleaned = message.trim().replace(/\s+/g, ' ');
+
+  // Truncate to ~40 characters for readability
+  const maxLength = 40;
+  if (cleaned.length <= maxLength) return cleaned;
+
+  // Try to cut at word boundary
+  const truncated = cleaned.substring(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(' ');
+
+  if (lastSpace > maxLength * 0.6) {
+    return truncated.substring(0, lastSpace) + '...';
+  }
+
+  return truncated + '...';
+}
+
+function useFastChat(callbacks, { currentConversationId, createConversation, setCurrentConversationId, selectedAI, saveMessage, renameConversation, conversations }) {
   const [messages, setMessages] = useState([
     {
       id: 'welcome',
@@ -138,12 +191,14 @@ function useFastChat(callbacks, { currentConversationId, createConversation, set
   const sendMessage = async (content, file = null) => {
     // Ensure conversation exists
     let conversationId = currentConversationId;
+    let isNewConversation = false;
     if (!conversationId) {
       const newId = uuidv4();
       console.log('Auto-creating conversation:', newId, 'for AI:', selectedAI);
       await createConversation(newId, 'New Conversation', selectedAI);
       setCurrentConversationId(newId);
       conversationId = newId;
+      isNewConversation = true;
     }
 
     const userMsgId = uuidv4();
@@ -166,6 +221,19 @@ function useFastChat(callbacks, { currentConversationId, createConversation, set
         }
       } catch (e) {
         console.error("Failed to upload file:", e);
+      }
+    }
+
+    // Auto-generate title for new conversation or if still "New Conversation"
+    if (content && renameConversation && conversations) {
+      const currentConv = conversations.find(c => c.id === conversationId);
+      if (isNewConversation || (currentConv && currentConv.title === 'New Conversation')) {
+        const generatedTitle = generateConversationTitle(content);
+        console.log('🏷️ Auto-generating title:', generatedTitle);
+        // Rename conversation asynchronously (don't wait)
+        renameConversation(conversationId, generatedTitle).catch(err =>
+          console.error('Failed to rename conversation:', err)
+        );
       }
     }
 
@@ -216,7 +284,13 @@ function useFastChat(callbacks, { currentConversationId, createConversation, set
 
       abortController.current = new AbortController();
 
-      // In a real app, you would fetch() here. We use the simulator with BaoBao.
+      const imageIntent = selectedAI === 'flowflow' ? detectImageGenerationIntent(content) : null;
+      if (imageIntent) {
+        console.log('🎨 Image generation intent detected:', imageIntent);
+        callbacks.onPendingImageRequest?.({ prompt: content, userMsgId, assistantMsgId, conversationId });
+        return;
+      }
+
       let capturedReferences = null;
       let fullContent = '';
 
@@ -333,8 +407,6 @@ const ThinkingBlock = ({ children }) => {
     if (!message) return;
 
     const hasThought = message.content && message.content.includes('>');
-    const lines = message.content?.split('\n') || [];
-    const hasAnswer = lines.some(line => line.trim() !== '' && !line.trim().startsWith('>'));
 
     if (message.status === 'streaming') {
       // During streaming, always open if there's thought content
@@ -342,10 +414,8 @@ const ThinkingBlock = ({ children }) => {
         setIsOpen(true);
       }
     } else {
-      // Keep open even after finished, unless user closes it manually
-      // or we can decide to close it. For now, let's keep it open if it was open.
-      // The user request says "show thinking process... real time", implying it should be visible.
-      // If we want it to stay visible, we just don't auto-close.
+      // Auto-close when finished
+      setIsOpen(false);
     }
   }, [message?.content, message?.status]);
 
@@ -430,38 +500,59 @@ const DateDivider = ({ date }) => {
 
 // Image Component for ReactMarkdown
 const ImageComponent = ({ src, alt, ...props }) => {
-  // We need to access the onPreview function. 
-  // Since we can't easily pass props through ReactMarkdown components without context,
-  // we'll use a simple window event or just render it.
-  // Ideally, we should put onPreview in MessageContext.
+  const { onPreview, onEditImage } = useContext(MessageContext) || {};
+  const [isHovered, setIsHovered] = useState(false);
 
-  const { onPreview } = useContext(MessageContext) || {};
+  // Check if image is generated by FlowFlow (local path)
+  const isGeneratedImage = src && src.startsWith('/generated-images/');
 
-  const handleClick = () => {
+  const handleClick = (e) => {
+    // If clicking the edit button, don't trigger preview
+    if (e.target.closest('.edit-btn')) return;
+
     if (onPreview) {
-      // Construct a file-like object for the preview modal
       onPreview({
         name: alt || 'Image',
-        mimeType: 'image/png', // Guessing mime type, or we could just pass src
-        data: src, // This might be a URL or base64
-        isUrl: true // Flag to tell preview it's a URL
+        mimeType: 'image/png',
+        data: src,
+        isUrl: true
       });
     }
   };
 
   return (
-    <img
-      src={src}
-      alt={alt}
-      onClick={handleClick}
-      className="cursor-pointer hover:opacity-90 transition-opacity rounded-lg"
-      {...props}
-    />
+    <div
+      className="relative inline-block group rounded-lg overflow-hidden"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <img
+        src={src}
+        alt={alt}
+        onClick={handleClick}
+        className="cursor-pointer hover:opacity-90 transition-opacity rounded-lg max-w-full h-auto"
+        {...props}
+      />
+
+      {/* Edit Button Overlay */}
+      {isGeneratedImage && (
+        <button
+          onClick={() => onEditImage && onEditImage(src)}
+          className={`edit-btn absolute top-2 right-2 p-2 bg-white/90 hover:bg-white text-blue-600 rounded-full shadow-lg backdrop-blur-sm transition-all duration-200 ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}
+          title="แก้ไขรูปภาพ"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+        </button>
+      )}
+    </div>
   );
 };
 
 // B. MessageRow
-const MessageRow = memo(({ message, onPreview, aiContext }) => {
+const MessageRow = memo(({ message, onPreview, onEditImage, aiContext }) => {
   const isUser = message.role === 'user';
   const isStreaming = message.status === 'streaming';
 
@@ -518,11 +609,17 @@ const MessageRow = memo(({ message, onPreview, aiContext }) => {
         )}
 
         <div className={`prose prose-slate max-w-none font-looped prose-p:leading-relaxed prose-pre:p-0 prose-pre:bg-transparent prose-pre:border-none ${isUser ? 'prose-p:my-0' : ''}`}>
-          <MessageContext.Provider value={{ message, onPreview }}>
+          <MessageContext.Provider value={{ message, onPreview, onEditImage }}>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeRaw]}
-              components={{ code: CodeBlock, blockquote: ThinkingBlock, img: ImageComponent, ...TableComponents }}
+              components={{
+                code: CodeBlock,
+                blockquote: ThinkingBlock,
+                img: ImageComponent,
+                a: ({ node, ...props }) => <a target="_blank" rel="noopener noreferrer" {...props} />,
+                ...TableComponents
+              }}
             >
               {message.content}
             </ReactMarkdown>
@@ -553,9 +650,16 @@ const MessageRow = memo(({ message, onPreview, aiContext }) => {
           // Only show if references are meaningful
           if (!hasIrrelevantContent && !hasMinimalContent) {
             return (
-              <div className="mt-4 pt-3 border-t border-slate-200 dark:border-neutral-700 text-sm text-slate-500 dark:text-neutral-400">
-                📚 <strong>แหล่งอ้างอิง:</strong> {message.references}
-              </div>
+
+              <details className="group mt-4 pt-3 border-t border-slate-200 dark:border-neutral-700 text-sm text-slate-500 dark:text-neutral-400">
+                <summary className="flex items-center gap-2 cursor-pointer select-none list-none font-medium text-xs uppercase tracking-wider opacity-70 hover:opacity-100 transition-opacity">
+                  <ChevronRight className="w-3.5 h-3.5 transition-transform group-open:rotate-90" />
+                  <span>แหล่งอ้างอิง</span>
+                </summary>
+                <div className="mt-2 pl-5 text-xs leading-relaxed opacity-80">
+                  {message.references}
+                </div>
+              </details>
             );
           }
           return null;
@@ -629,6 +733,32 @@ const Composer = ({ onSend, isStreaming, onStop, onAssetUpload, onPreview, selec
   };
 
   const handlePaste = (e) => {
+    // 1. Handle Image Paste
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        e.preventDefault();
+        const file = items[i].getAsFile();
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const base64 = e.target.result.split(',')[1];
+          const newFile = {
+            id: uuidv4(),
+            name: file.name || `pasted_image_${Date.now()}.png`,
+            mimeType: file.type,
+            data: base64,
+            timestamp: Date.now()
+          };
+          setSelectedFile(newFile);
+          onAssetUpload(newFile);
+        };
+        reader.readAsDataURL(file);
+        return; // Stop after first image found
+      }
+    }
+
+    // 2. Handle Long Text Paste (Convert to CSV)
     const text = e.clipboardData.getData('text');
     if (text.length > 2000) {
       e.preventDefault();
@@ -700,7 +830,7 @@ const Composer = ({ onSend, isStreaming, onStop, onAssetUpload, onPreview, selec
   return (
     <FadeInText as="div" direction="up" delayMs={400} className="w-full max-w-3xl mx-auto p-4">
       <div
-        className={`relative flex flex-col p-2 rounded-[2rem] border shadow-lv1 hover:shadow-lv2 focus-within:shadow-lv2 transition-all duration-200
+        className={`relative flex flex-col p-2 rounded-[2rem] border shadow-lv1 focus-within:shadow-lv2 transition-all duration-200
           bg-white dark:bg-neutral-800
           ${isDragging
             ? 'border-blue-500 dark:border-blue-400 border-2 shadow-lg scale-[1.02] bg-blue-50/50 dark:bg-blue-900/20'
@@ -718,7 +848,7 @@ const Composer = ({ onSend, isStreaming, onStop, onAssetUpload, onPreview, selec
           ref={fileInputRef}
           onChange={handleFileSelect}
           className="hidden"
-          accept="image/*,.pdf,.csv,.docx,.xlsx,.ppt,.pptx"
+          accept="image/*,.pdf,.csv,.docx,.xlsx,.ppt,.pptx,.html"
         />
 
         {/* Attached File Card (Inside the box) */}
@@ -762,10 +892,9 @@ const Composer = ({ onSend, isStreaming, onStop, onAssetUpload, onPreview, selec
         {/* Toolbar */}
         <div className="flex items-center justify-between px-2 pb-1">
           <div className="flex items-center gap-1">
-            {/* Plus Button */}
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-8 h-8 flex items-center justify-center text-slate-400 dark:text-neutral-400 hover:text-slate-600 dark:hover:text-neutral-200 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-neutral-700"
+              className="w-8 h-8 flex items-center justify-center text-slate-600 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-700 transition-all rounded-full"
               title="Upload file"
             >
               <Plus size={20} />
@@ -816,22 +945,43 @@ const Composer = ({ onSend, isStreaming, onStop, onAssetUpload, onPreview, selec
 /* -------------------------------------------------------------------------- */
 
 export default function App() {
+  // Image Editing State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editImageSrc, setEditImageSrc] = useState(null);
+
+  const handleEditImage = (src) => {
+    setEditImageSrc(src);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSubmit = (prompt) => {
+    // Send message to chat
+    sendMessage(prompt);
+  };
   const scrollRef = useRef(null);
 
   // Conversation State
   const [currentConversationId, setCurrentConversationId] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // Keep sidebar visible on desktop by default so navigation/history stay accessible
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return window.innerWidth >= 1024;
+  });
   const [isConversationLoading, setIsConversationLoading] = useState(false);
   const [isMcpModalOpen, setIsMcpModalOpen] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showImageGenModal, setShowImageGenModal] = useState(false);
+  const [pendingImageRequest, setPendingImageRequest] = useState(null);
 
   // AI Selection State (must be before useConversations)
   const [selectedAI, setSelectedAI] = useState('baobao');
 
-  // Reset conversation when AI changes
+  // Reset conversation when AI changes - MUST be before early returns
   useEffect(() => {
     setCurrentConversationId(null);
   }, [selectedAI]);
 
+  // ALL HOOKS must be called before conditional returns
   const {
     conversations,
     loading,
@@ -839,7 +989,13 @@ export default function App() {
     createConversation,
     renameConversation,
     deleteConversation,
-    saveMessage
+    saveMessage,
+    folders,
+    createFolder,
+    renameFolder,
+    deleteFolder,
+    moveConversation,
+    deleteAllConversations
   } = useConversations(currentConversationId, setCurrentConversationId, selectedAI);
 
   // Asset Library State & Logic
@@ -851,43 +1007,6 @@ export default function App() {
   // Notification & Profile Panel State
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-
-
-  // AI Configuration
-  const AI_ASSISTANTS = {
-    baobao: {
-      id: 'baobao',
-      name: 'BaoBao',
-      avatar: '/avatars/baobao_avatar.png',
-      color: 'blue',
-      description: 'UX Writing Expert',
-      systemPrompt: 'baobao' // Will use existing BaoBao prompt
-    },
-    deedee: {
-      id: 'deedee',
-      name: 'DeeDee',
-      avatar: '/avatars/deedee-avatar.png',
-      color: 'green',
-      description: 'Content Strategy Assistant',
-      systemPrompt: 'deedee' // To be customized later
-    },
-    pungpung: {
-      id: 'pungpung',
-      name: 'PungPung',
-      avatar: '/avatars/pungpung-avatar.png',
-      color: 'yellow',
-      description: 'Creative Writing Helper',
-      systemPrompt: 'pungpung' // To be customized later
-    },
-    flowflow: {
-      id: 'flowflow',
-      name: 'FlowFlow',
-      avatar: '/avatars/flowflow-avatar.png',
-      color: 'purple',
-      description: 'Workflow Optimizer',
-      systemPrompt: 'flowflow' // To be customized later
-    }
-  };
 
   // Sample initial notifications
   const initialNotifications = [
@@ -927,6 +1046,101 @@ export default function App() {
     localStorage.setItem('baobao_notifications', JSON.stringify(notifications));
   }, [notifications]);
 
+  // Load assets on mount - MUST be before auth check
+  useEffect(() => {
+    const loadAssetsOnMount = async () => {
+      try {
+        const response = await fetch('/api/assets');
+        const data = await response.json();
+        if (response.ok) {
+          setAssets(data);
+        }
+      } catch (error) {
+        console.error('Error loading assets:', error);
+      }
+    };
+    loadAssetsOnMount();
+  }, []);
+
+  // useFastChat hook - MUST be before auth check but needs callbacks defined after
+  // We'll use a ref to store callbacks and call them dynamically
+  const callbacksRef = useRef({
+    onMessageSent: async () => { },
+    onStreamComplete: async () => { },
+    onStreamError: () => { },
+    onNewConversation: () => { }
+  });
+
+  const { messages, setMessages, sendMessage, isStreaming, stop } = useFastChat(
+    callbacksRef.current,
+    {
+      currentConversationId,
+      createConversation,
+      setCurrentConversationId,
+      selectedAI,
+      saveMessage,
+      renameConversation,
+      conversations
+    }
+  );
+
+  // AUTH HOOK - Must be called after all other hooks but before early returns
+  const { user, loading: authLoading } = useAuth();
+
+
+
+  // AI Configuration
+  const AI_ASSISTANTS = {
+    baobao: {
+      id: 'baobao',
+      name: 'BaoBao',
+      avatar: '/avatars/baobao_avatar.png',
+      color: 'blue',
+      description: 'UX Writing Expert',
+      systemPrompt: 'baobao' // Will use existing BaoBao prompt
+    },
+    deedee: {
+      id: 'deedee',
+      name: 'DeeDee',
+      avatar: '/avatars/deedee-avatar.png',
+      color: 'green',
+      description: 'Content Strategy Assistant',
+      systemPrompt: 'deedee' // To be customized later
+    },
+    pungpung: {
+      id: 'pungpung',
+      name: 'PungPung',
+      avatar: '/avatars/pungpung-avatar.png',
+      color: 'yellow',
+      description: 'Creative Writing Helper',
+      systemPrompt: 'pungpung' // To be customized later
+    },
+    flowflow: {
+      id: 'flowflow',
+      name: 'FlowFlow',
+      avatar: '/avatars/flowflow-avatar.png',
+      color: 'purple',
+      description: 'Workflow Optimizer',
+      systemPrompt: 'flowflow' // To be customized later
+    },
+    flowflowgpt5: {
+      id: 'flowflowgpt5',
+      name: 'FlowFlow (AI-Team)',
+      avatar: '/avatars/flowflow_bw.png',
+      color: 'purple',
+      description: 'Custom Agent',
+      systemPrompt: 'flowflow' // Reuse prompt or custom
+    },
+    baobaogpt5: {
+      id: 'baobaogpt5',
+      name: 'BaoBao (AI-Team)',
+      avatar: '/avatars/baobao_bw.png',
+      color: 'blue',
+      description: 'Custom Agent',
+      systemPrompt: 'baobao' // Reuse prompt or custom
+    }
+  };
+
   const unreadCount = notifications.filter(n => n.unread).length;
 
   const handleMarkAsRead = (id) => {
@@ -949,19 +1163,21 @@ export default function App() {
     }
   };
 
-  useEffect(() => {
-    loadAssets();
-  }, []);
-
-  const handleAssetUpload = async (file) => {
+  const handleAssetUpload = async (fileData) => {
     try {
-      console.log('Uploading asset:', file.name);
+      console.log('Uploading asset:', fileData.name);
+      // Destructure to separate file data from metadata
+      const { source, prompt, ai_id, ...file } = fileData;
+
       const res = await fetch('/api/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           file,
-          conversation_id: currentConversationId
+          conversation_id: currentConversationId,
+          source,
+          prompt,
+          ai_id
         })
       });
 
@@ -993,6 +1209,29 @@ export default function App() {
     }
   };
 
+  const handleRenameAsset = async (id, newFilename) => {
+    try {
+      console.log('📝 Renaming asset:', { id, newFilename });
+      const response = await fetch(`/api/assets/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: newFilename })
+      });
+
+      const result = await response.json();
+      console.log('📝 Rename response:', result);
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to rename');
+      }
+
+      await loadAssets();
+      console.log('✅ Asset renamed successfully');
+    } catch (error) {
+      console.error('❌ Error renaming asset:', error);
+    }
+  };
+
   const handleSelectAsset = (asset) => {
     setSelectedAsset({
       name: asset.filename,
@@ -1002,54 +1241,73 @@ export default function App() {
     setIsAssetLibraryOpen(false);
   };
 
-  // Chat Hook
-  const { messages, setMessages, sendMessage, isStreaming, stop } = useFastChat({
-    onMessageSent: async (msg) => {
-      // Auto-generate title for first message
-      if (messages.length <= 1 && currentConversationId) {
-        // ... title generation logic if needed ...
-      }
+  // Update callbacks ref with actual implementations
+  useEffect(() => {
+    callbacksRef.current = {
+      onMessageSent: async (msg) => {
+        // Auto-generate title for first message
+        if (messages.length <= 1 && currentConversationId) {
+          // ... title generation logic if needed ...
+        }
 
-      if (currentConversationId) {
-        await saveMessage({
-          id: msg.id,
-          conversation_id: currentConversationId,
-          role: msg.role,
-          content: msg.content,
-          file_data: msg.file ? JSON.stringify(msg.file) : null,
-          file_id: msg.fileId,
-          references: msg.references
-        });
+        if (currentConversationId) {
+          await saveMessage({
+            id: msg.id,
+            conversation_id: currentConversationId,
+            role: msg.role,
+            content: msg.content,
+            file_data: msg.file ? JSON.stringify(msg.file) : null,
+            file_id: msg.fileId,
+            references: msg.references
+          });
+        }
+      },
+      onMessageReceived: async (msg) => {
+        if (currentConversationId) {
+          await saveMessage({
+            id: msg.id,
+            conversation_id: currentConversationId,
+            role: msg.role,
+            content: msg.content,
+            references: msg.references
+          });
+        }
+      },
+      onUpload: handleAssetUpload,
+      onPendingImageRequest: (request) => {
+        setPendingImageRequest(request);
+        setShowImageGenModal(true);
+        setTimeout(() => {
+          setShowImageGenModal(false);
+          setPendingImageRequest(null);
+        }, 10000);
       }
-    },
-    onMessageReceived: async (msg) => {
-      if (currentConversationId) {
-        await saveMessage({
-          id: msg.id,
-          conversation_id: currentConversationId,
-          role: msg.role,
-          content: msg.content,
-          references: msg.references
-        });
-      }
-    },
-    onUpload: handleAssetUpload
-  }, { currentConversationId, createConversation, setCurrentConversationId, selectedAI, saveMessage });
+    };
+  }, [currentConversationId, messages, saveMessage, handleAssetUpload]);
 
-  // Create initial conversation on mount
-  // Create initial conversation on mount - DISABLED per user request
-  // useEffect(() => {
-  //   if (loading) return;
-  //
-  //   if (!currentConversationId && conversations.length === 0) {
-  //     const newId = uuidv4();
-  //     createConversation(newId, 'New Conversation').then(() => {
-  //       setCurrentConversationId(newId);
-  //     });
-  //   } else if (!currentConversationId && conversations.length > 0) {
-  //     setCurrentConversationId(conversations[0].id);
-  //   }
-  // }, [conversations.length, loading]);
+  useEffect(() => {
+    if (!loading && !currentConversationId) {
+      setShowWelcomeModal(true);
+    }
+  }, [currentConversationId, loading]);
+
+  // Handle clicks on generated images  
+  useEffect(() => {
+    const handleImageClick = (e) => {
+      const img = e.target.closest('img[data-preview]');
+      if (img) {
+        try {
+          const previewData = JSON.parse(img.getAttribute('data-preview'));
+          setPreviewFile(previewData);
+        } catch (error) {
+          console.error('Failed to parse preview data:', error);
+        }
+      }
+    };
+
+    document.addEventListener('click', handleImageClick);
+    return () => document.removeEventListener('click', handleImageClick);
+  }, []);
 
   // Load conversation when ID changes
   useEffect(() => {
@@ -1092,11 +1350,13 @@ export default function App() {
               baobao: { greeting: 'สวัสดีครับ! 🐕✨ เบาเบาพร้อมช่วยเรื่อง UX writing แล้วครับ', emoji: '🐕' },
               deedee: { greeting: 'สวัสดีค่ะ! 🦌✨ ดีดีพร้อมช่วยวิเคราะห์ข้อมูลและทำ Google Analytics แล้วค่ะ', emoji: '🦌' },
               pungpung: { greeting: 'สวัสดีครับ! 🦉✨ ปังปังพร้อมช่วยวิเคราะห์ Feedback และ CSAT แล้วครับ', emoji: '🦉' },
-              flowflow: { greeting: 'สวัสดีครับ! 🐙✨ โฟลว์โฟลว์ ปลาหมึกนักออกแบบพร้อมช่วย Design Flow & UI แล้วครับ', emoji: '🐙' }
+              flowflow: { greeting: 'สวัสดีครับ! 🐙✨ โฟลว์โฟลว์ ปลาหมึกนักออกแบบพร้อมช่วย Design Flow & UI แล้วครับ', emoji: '🐙' },
+              flowflowgpt5: { greeting: 'สวัสดีครับ! 🐙✨ โฟลว์โฟลว์ (AI-Team) พร้อมช่วย Design Flow & UI แล้วครับ', emoji: '🐙' },
+              baobaogpt5: { greeting: 'สวัสดีครับ! 🐕✨ เบาเบา (AI-Team) พร้อมช่วยเรื่อง UX writing แล้วครับ', emoji: '🐕' }
             };
 
             const aiInfo = aiGreetings[selectedAI] || aiGreetings.baobao;
-            const welcomeMessage = `${aiInfo.greeting}\n\n💡 **Tip of the Day**\n\n${tipData.tip}\n\n---\n\nมีอะไรให้ช่วยไหม${['baobao', 'flowflow', 'pungpung'].includes(selectedAI) ? 'ครับ' : 'คะ'}? 😊`;
+            const welcomeMessage = `${aiInfo.greeting}\n\n💡 **Tip of the Day**\n\n${tipData.tip}\n\n---\n\nมีอะไรให้ช่วยไหม${['baobao', 'flowflow', 'pungpung', 'flowflowgpt5', 'baobaogpt5'].includes(selectedAI) ? 'ครับ' : 'คะ'}? 😊`;
 
             setMessages([{
               id: 'welcome',
@@ -1111,7 +1371,9 @@ export default function App() {
               baobao: 'สวัสดีครับ! 🐕✨ เบาเบาพร้อมช่วยเรื่อง UX writing แล้วครับ มีอะไรให้ช่วยไหมครับ? 😊',
               deedee: 'สวัสดีค่ะ! 🦌✨ ดีดีพร้อมช่วยวิเคราะห์ข้อมูลและทำ Google Analytics แล้วค่ะ มีอะไรให้ช่วยไหมคะ? 😊',
               pungpung: 'สวัสดีครับ! 🦉✨ ปังปังพร้อมช่วยวิเคราะห์ Feedback และ CSAT แล้วครับ มีอะไรให้ช่วยไหมครับ? 😊',
-              flowflow: 'สวัสดีครับ! 🐙✨ โฟลว์โฟลว์ ปลาหมึกนักออกแบบพร้อมช่วย Design Flow & UI แล้วครับ มีอะไรให้ช่วยไหมครับ? 😊'
+              flowflow: 'สวัสดีครับ! 🐙✨ โฟลว์โฟลว์ ปลาหมึกนักออกแบบพร้อมช่วย Design Flow & UI แล้วครับ มีอะไรให้ช่วยไหมครับ? 😊',
+              flowflowgpt5: 'สวัสดีครับ! 🐙✨ โฟลว์โฟลว์ (AI-Team) พร้อมช่วย Design Flow & UI แล้วครับ มีอะไรให้ช่วยไหมครับ? 😊',
+              baobaogpt5: 'สวัสดีครับ! 🐕✨ เบาเบา (AI-Team) พร้อมช่วยเรื่อง UX writing แล้วครับ มีอะไรให้ช่วยไหมครับ? 😊'
             };
             setMessages([{
               id: 'welcome',
@@ -1133,21 +1395,8 @@ export default function App() {
 
   // Conversation Handlers
   const handleNewConversation = async () => {
-    console.log('Creating new conversation...');
-    const newId = uuidv4();
-    console.log('New conversation ID:', newId);
-
-    try {
-      await createConversation(newId, 'New Conversation', selectedAI);
-      console.log('Conversation created successfully');
-
-      setCurrentConversationId(newId);
-      // We don't need to set messages here manually. 
-      // The useEffect watching currentConversationId will load the conversation,
-      // see it's empty, and trigger the welcome message + tip generation logic.
-    } catch (error) {
-      console.error('Error creating conversation:', error);
-    }
+    console.log('New conversation requested - showing WelcomeModal');
+    setShowWelcomeModal(true);
   };
 
   const handleSelectConversation = (id) => {
@@ -1180,6 +1429,27 @@ export default function App() {
     }
   }, [messages, isStreaming]);
 
+  // Show loading state while checking auth
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-neutral-900">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg className="w-10 h-10 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show auth pages if not authenticated
+  if (!user) {
+    return <AuthPages />;
+  }
+
   return (
     <div className="flex h-screen bg-app overflow-hidden font-sans text-text-primary transition-colors duration-300">
       <ConversationSidebar
@@ -1194,6 +1464,12 @@ export default function App() {
         selectedAI={selectedAI}
         aiAssistants={AI_ASSISTANTS}
         onSelectAI={setSelectedAI}
+        folders={folders}
+        createFolder={createFolder}
+        renameFolder={renameFolder}
+        deleteFolder={deleteFolder}
+        moveConversation={moveConversation}
+        deleteAllConversations={deleteAllConversations}
       />
 
       <div className="flex-1 flex overflow-hidden relative">
@@ -1214,7 +1490,7 @@ export default function App() {
 
               {/* Conversation Title */}
               <h1 className="font-semibold text-sm text-text-primary leading-tight hidden sm:block">
-                {conversations.find(c => c.id === currentConversationId)?.title || 'BaoBao AI'}
+                {conversations.find(c => c.id === currentConversationId)?.title || 'AXIO AI Platform'}
               </h1>
             </div>
 
@@ -1278,14 +1554,14 @@ export default function App() {
                     />
                   </div>
                   <h2 className="text-2xl font-semibold text-text-primary mb-2">
-                    {AI_ASSISTANTS[selectedAI]?.name || 'BaoBao AI'}
+                    {AI_ASSISTANTS[selectedAI]?.name || 'AXIO AI Platform'}
                   </h2>
                   <p className="text-text-secondary max-w-md mb-8">
                     {AI_ASSISTANTS[selectedAI]?.description || 'พร้อมช่วยงานคุณแล้วครับ'}
                   </p>
                   <button
                     onClick={handleNewConversation}
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-medium shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-medium shadow-lg transition-all"
                   >
                     Start New Chat
                   </button>
@@ -1307,6 +1583,7 @@ export default function App() {
                       isLast={msg.id === messages[messages.length - 1].id}
                       isStreaming={isStreaming}
                       onPreview={setPreviewFile}
+                      onEditImage={handleEditImage}
                       aiContext={AI_ASSISTANTS[selectedAI]}
                     />
                   </React.Fragment>
@@ -1328,7 +1605,7 @@ export default function App() {
                 onOpenMcpModal={() => setIsMcpModalOpen(true)}
               />
               <p className="text-center text-xs text-text-muted mt-2">
-                BaoBao AI can make mistakes. Please verify important information.
+                AXIO AI Platform can make mistakes. Please verify important information.
               </p>
             </div>
           </div>
@@ -1341,6 +1618,7 @@ export default function App() {
           onClose={() => setIsAssetLibraryOpen(false)}
           onSelectAsset={handleSelectAsset}
           onDeleteAsset={handleDeleteAsset}
+          onRenameAsset={handleRenameAsset}
           onPreview={setPreviewFile}
         />
 
@@ -1371,10 +1649,22 @@ export default function App() {
         onClose={() => setPreviewFile(null)}
       />
 
+      <WelcomeModal isOpen={showWelcomeModal} onClose={() => setShowWelcomeModal(false)} aiAssistants={AI_ASSISTANTS} onSelectAI={(aiId) => { setSelectedAI(aiId); setShowWelcomeModal(false); const newId = uuidv4(); createConversation(newId, 'New Conversation', aiId).then(() => setCurrentConversationId(newId)); }} />
+
+      {showImageGenModal && pendingImageRequest && (<ImageGenerationModal prompt={pendingImageRequest.prompt} onImageGen={async () => { setShowImageGenModal(false); setMessages(prev => prev.map(msg => msg.id === pendingImageRequest.assistantMsgId ? { ...msg, content: '🎨 กำลังสร้างภาพตาม AXIO Design System...\n\n<div class="skeleton-loader"></div>\n\nกรุณารอสักครู่นะครับ อาจใช้เวลา 10-30 วินาที ⏳' } : msg)); try { const response = await fetch('/api/generate-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: pendingImageRequest.prompt, ai_id: selectedAI }) }); if (response.ok) { const imageData = await response.json(); const imageContent = `🎨 สร้างภาพตาม AXIO Design System เรียบร้อยแล้วครับ!\n\n<img src="${imageData.imageUrl}" alt="Generated Design" class="generated-image fade-in cursor-pointer hover:opacity-90 transition-opacity" data-preview='{"name":"Generated Design","mimeType":"image/jpeg","data":"${imageData.imageUrl}"}' />\n\nคลิกที่ภาพเพื่อดูขนาดเต็ม | นี่คือดีไซน์ที่สร้างตามหลัก AXIO Design System ครับ ✨`; setMessages(prev => prev.map(msg => msg.id === pendingImageRequest.assistantMsgId ? { ...msg, content: imageContent, status: 'delivered' } : msg)); await saveMessage({ id: pendingImageRequest.assistantMsgId, conversation_id: pendingImageRequest.conversationId, role: 'assistant', content: imageContent, references: null }); console.log('💾 Auto-saving generated image to asset library...'); try { const imageResponse = await fetch(imageData.imageUrl); const imageBlob = await imageResponse.blob(); const base64data = await new Promise((resolve) => { const reader = new FileReader(); reader.onloadend = () => resolve(reader.result.split(',')[1]); reader.readAsDataURL(imageBlob); }); await handleAssetUpload({ name: imageData.filename, mimeType: 'image/jpeg', data: base64data, source: 'ai_generated', prompt: pendingImageRequest.prompt, ai_id: selectedAI }); console.log('✅ Generated image saved to asset library'); } catch (assetError) { console.error('❌ Failed to save generated image to assets:', assetError); } } else { throw new Error('Image generation failed'); } } catch (error) { console.error('Image generation error:', error); setMessages(prev => prev.map(msg => msg.id === pendingImageRequest.assistantMsgId ? { ...msg, content: '❌ ขออภัยครับ เกิดข้อผิดพลาดในการสร้างภาพ กรุณาลองใหม่อีกครั้ง', status: 'delivered' } : msg)); } setPendingImageRequest(null); }} onRegularChat={() => { setShowImageGenModal(false); sendMessage(pendingImageRequest.prompt); setPendingImageRequest(null); }} onDismiss={() => { setShowImageGenModal(false); setMessages(prev => prev.filter(msg => msg.id !== pendingImageRequest.assistantMsgId)); setPendingImageRequest(null); }} />)}
+
       {/* MCP Connection Modal */}
       <McpConnectionModal
         isOpen={isMcpModalOpen}
         onClose={() => setIsMcpModalOpen(false)}
+      />
+
+      {/* Image Edit Modal */}
+      <ImageEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSubmit={handleEditSubmit}
+        imageSrc={editImageSrc}
       />
     </div>
   );

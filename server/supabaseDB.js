@@ -18,6 +18,79 @@ if (!supabaseUrl || !supabaseKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
+// Authentication operations
+export const authDB = {
+    // Sign up new user
+    async signUp(email, password, metadata = {}) {
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: metadata
+            }
+        });
+
+        if (error) throw error;
+        return data;
+    },
+
+    // Sign in existing user
+    async signIn(email, password) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password
+        });
+
+        if (error) throw error;
+        return data;
+    },
+
+    // Sign out current user
+    async signOut() {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+    },
+
+    // Get current session
+    async getSession() {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        return data.session;
+    },
+
+    // Get current user
+    async getCurrentUser() {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) throw error;
+        return user;
+    },
+
+    // Send password reset email
+    async resetPassword(email) {
+        const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/reset-password`
+        });
+
+        if (error) throw error;
+        return data;
+    },
+
+    // Update password (after reset)
+    async updatePassword(newPassword) {
+        const { data, error } = await supabase.auth.updateUser({
+            password: newPassword
+        });
+
+        if (error) throw error;
+        return data;
+    },
+
+    // Listen to auth state changes
+    onAuthStateChange(callback) {
+        return supabase.auth.onAuthStateChange(callback);
+    }
+};
+
 // Conversation operations
 export const conversationDB = {
     // Get all conversations
@@ -58,6 +131,7 @@ export const conversationDB = {
                 id: conversation.id,
                 title: conversation.title,
                 ai_id: conversation.ai_id || 'baobao', // Default to baobao if not specified
+                folder_id: conversation.folder_id || null, // Optional folder
                 created_at: Date.now(),
                 updated_at: Date.now()
             }])
@@ -74,6 +148,7 @@ export const conversationDB = {
             .from('conversations')
             .update({
                 title: updates.title,
+                folder_id: updates.folder_id, // Allow updating folder
                 updated_at: Date.now()
             })
             .eq('id', id)
@@ -101,6 +176,93 @@ export const conversationDB = {
     async delete(id) {
         const { error } = await supabase
             .from('conversations')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+        return { success: true };
+    },
+
+    // Delete all conversations (Clear All for specific AI)
+    async deleteAll(aiId) {
+        let query = supabase
+            .from('conversations')
+            .delete();
+
+        if (aiId) {
+            query = query.eq('ai_id', aiId);
+        } else {
+            // Safety: if no AI ID provided, don't delete anything to prevent accidents
+            // Or we could allow deleting EVERYTHING if explicitly requested, but safer to require scope
+            console.warn('deleteAll called without aiId - preventing accidental wipe');
+            return { success: false, error: 'AI ID required' };
+        }
+
+        const { error } = await query;
+
+        if (error) throw error;
+        return { success: true };
+    }
+};
+
+// Folder operations
+export const folderDB = {
+    // Get all folders
+    async getAll() {
+        const { data, error } = await supabase
+            .from('folders')
+            .select('*')
+            .order('created_at', { ascending: true });
+
+        if (error) throw error;
+        return data;
+    },
+
+    // Create folder
+    async create(folder) {
+        const { data, error } = await supabase
+            .from('folders')
+            .insert([{
+                id: folder.id,
+                name: folder.name,
+                created_at: Date.now(),
+                updated_at: Date.now()
+            }])
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
+    // Update folder
+    async update(id, updates) {
+        const { data, error } = await supabase
+            .from('folders')
+            .update({
+                name: updates.name,
+                updated_at: Date.now()
+            })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
+    // Delete folder
+    async delete(id) {
+        // First, move all conversations in this folder back to root (folder_id = null)
+        // Or should we delete them? Usually "delete folder" keeps contents or asks.
+        // Let's move them to root for safety.
+        await supabase
+            .from('conversations')
+            .update({ folder_id: null })
+            .eq('folder_id', id);
+
+        const { error } = await supabase
+            .from('folders')
             .delete()
             .eq('id', id);
 
@@ -167,24 +329,51 @@ export const messageDB = {
 export const fileDB = {
     // Create file record
     async create(file) {
-        const { data, error } = await supabase
-            .from('uploaded_files')
-            .insert([{
-                id: file.id,
-                conversation_id: file.conversation_id,
-                filename: file.filename,
-                file_type: file.file_type,
-                mime_type: file.mime_type,
-                file_size: file.file_size,
-                storage_url: file.storage_url, // Currently storing base64 here, ideally Supabase Storage URL
-                created_at: Date.now(),
-                updated_at: Date.now()
-            }])
-            .select()
-            .single();
+        // Try to insert with metadata first
+        try {
+            const { data, error } = await supabase
+                .from('uploaded_files')
+                .insert([{
+                    id: file.id,
+                    conversation_id: file.conversation_id,
+                    filename: file.filename,
+                    file_type: file.file_type,
+                    mime_type: file.mime_type,
+                    file_size: file.file_size,
+                    storage_url: file.storage_url,
+                    created_at: Date.now(),
+                    updated_at: Date.now()
+                }])
+                .select()
+                .single();
 
-        if (error) throw error;
-        return data;
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            // If error is due to missing columns (Postgres code 42703), retry without metadata
+            if (error.code === '42703' || error.message?.includes('does not exist')) {
+                console.warn('⚠️ Metadata columns missing in uploaded_files table. Falling back to basic insert.');
+                const { data, error: retryError } = await supabase
+                    .from('uploaded_files')
+                    .insert([{
+                        id: file.id,
+                        conversation_id: file.conversation_id,
+                        filename: file.filename,
+                        file_type: file.file_type,
+                        mime_type: file.mime_type,
+                        file_size: file.file_size,
+                        storage_url: file.storage_url,
+                        created_at: Date.now(),
+                        updated_at: Date.now()
+                    }])
+                    .select()
+                    .single();
+
+                if (retryError) throw retryError;
+                return data;
+            }
+            throw error;
+        }
     },
 
     // Get files by conversation
@@ -219,5 +408,21 @@ export const fileDB = {
 
         if (error) throw error;
         return { success: true };
+    },
+
+    // Update file (for renaming)
+    async update(id, updates) {
+        const { data, error } = await supabase
+            .from('uploaded_files')
+            .update({
+                filename: updates.filename,
+                updated_at: Date.now()
+            })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
     }
 };

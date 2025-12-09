@@ -1,0 +1,38 @@
+data: {"type":"text","text":"จัดให้ทันทีครับ! นี่คือลิงก์ **Design System Template** ทั้งหมดที่มีในคลังข้อมูลของเรา แบ่งตามประเภทการใช้งานครับ 🐙✨\n\n## 🎨 Design System Templates"}
+
+data: {"type":"text","text":"\n\n| ชื่อ Template | ประเภท | Figma Link |\n|---|---|---|\n| **Web Responsive** | Template |"}
+
+data: {"type":"text","text":" [คลิกเพื่อเปิด Figma](https://www.figma.com/design/7RGdahRWtOuGE"}
+
+data: {"type":"text","text":"2yd97ecTh/Design-System-Template---Web-responsive?m=auto&t=2"}
+
+data: {"type":"text","text":"RFwMhVcua4iw98O-6) |\n| **Mobile Application** | Template |"}
+
+data: {"type":"text","text":" [คลิกเพื่อเปิด Figma](https://www.figma.com/design/aYqNGOR5"}
+
+data: {"type":"text","text":"1YuwHGbtU0edzM/Design-System-Template---Mobile-Application?m=auto"}
+
+data: {"type":"text","text":"&t=2RFwMhVcua4iw98O-6) |\n| **Tablet Application"}
+
+data: {"type":"text","text":"** | Template | [คลิกเพื่อเปิด Figma](https://www.figma.com/design/fzg"}
+
+data: {"type":"text","text":"DiAXNDxv5b6a03hy5dE/%E2%9C%85--"}
+
+data: {"type":"text","text":"Design-System-Template---Tablet-Application?m=auto&t=2RFwMhVcua4"}
+
+data: {"type":"text","text":"iw98O-6) |\n| **Kiosk** | Template | [คลิกเพื่อเปิด Figma]("}
+
+data: {"type":"text","text":"https://www.figma.com/design/OYAXJdy1nPy6fNmGZsF"}
+
+data: {"type":"text","text":"h3r/Design-System-Template---Kiosk?m=auto&t=2RFwMh"}
+
+data: {"type":"text","text":"Vcua4iw98O-6) |\n\n**📄 อ้างอิงจากไฟล์:** `_List of Design"}
+
+data: {"type":"text","text":" Template or Pattern.md`\n\nเลือกใช้ตาม Platform ที่กำลังออกแบบได้เลยนะครับ! ถ้าต้องการข้อมูลส่วนไหนเพิ่ม"}
+
+data: {"type":"text","text":" บอก FlowFlow ได้เลยครับผม! 🚀"}
+
+data: {"type":"references","files":"_AXIO Design System - Foundation.md, _AXIO Design System - Foundation, _Component List.md, _Component List, _Component Overview.md, _Component Overview, _List of Design Template or Pattern.md, _List of Design Template or Pattern, _List of System Icon.md"}
+
+data: [DONE]
+
