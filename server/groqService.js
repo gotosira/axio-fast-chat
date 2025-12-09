@@ -71,7 +71,7 @@ export async function* generateGroqResponseStream(userQuery, searchResults, file
         else if (searchResults && searchResults.length > 0) {
             context = '\n\n**📚 ข้อมูลจากคลังเอกสาร (ใช้ข้อมูลนี้ก่อนเสมอ):**\n\n';
             searchResults.slice(0, 3).forEach((result) => {
-                context += `### หมวดหมู่: ${result.category} (จากไฟล์: ${result.filename})\n`;
+                context += `### ${result.category}\n`;
                 if (result.excerpts && result.excerpts.length > 0) {
                     result.excerpts.slice(0, 2).forEach(excerpt => {
                         context += `${excerpt}\n\n`;
