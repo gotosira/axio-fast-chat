@@ -534,21 +534,17 @@ export async function* generateAIResponseStream(userQuery, searchResults, fileDa
         const streamingInstructions = `
 **คำสั่งสำคัญสำหรับการตอบสนองที่รวดเร็วที่สุด (Critical Priority):**
 1. **เริ่มส่งข้อมูลทันที (Instant Stream):** ห้ามหยุดรอประมวลผล ห้ามคิดนาน
-2. **กระบวนการคิด (Thinking Block):** ให้ตัดออกหรือเขียนสั้นที่สุดเท่าที่จะทำได้ (1-2 ประโยคพอ)
+2. **กระบวนการคิด (Thinking Block) - ต้องอยู่ลำดับแรกสุด:**
    > **กระบวนการคิด:**
-   > [วิเคราะห์เร็วๆ แล้วตอบเลย]
+   > [วิเคราะห์สั้นๆ 1-2 ประโยค]
+   
+   **สำคัญมาก: กระบวนการคิดต้องอยู่ก่อนคำตอบเสมอ ห้ามใส่ไว้ท้าย**
 
 3. **รูปแบบการตอบ (Response Format):**
-   ต้องตอบตามโครงสร้างนี้เท่านั้น (ใช้ HTML สำหรับส่วนที่กำหนด):
+   ต้องตอบตามโครงสร้างนี้เท่านั้น ตามลำดับ:
 
-   [ถ้ามีรูปภาพประกอบ ให้แสดงตรงนี้ทันที โดยใช้โครงสร้าง HTML นี้]:
-   <div class="image-card-container">
-     <div class="image-card">
-       <img src="URL_ของภาพ" alt="คำอธิบาย">
-       <div class="image-card-caption">คำอธิบายภาพ</div>
-     </div>
-     <!-- เพิ่มการ์ดภาพอื่นๆ ต่อได้ -->
-   </div>
+   1) กระบวนการคิด (Blockquote ก่อนเสมอ)
+   2) จากนั้นคำตอบหลัก:
 
    ## [หัวข้อหลัก (Summarized Topic)]
    [เนื้อหาหลัก อธิบายบริบท]
@@ -566,8 +562,6 @@ export async function* generateAIResponseStream(userQuery, searchResults, fileDa
    - **Example:**
      - Background: \`main/surface/primary #F5FAFE\`
      - Text: \`main/base/dark #344054\`
-
-หลังจากนั้นให้ขึ้นบรรทัดใหม่และเขียนคำตอบสุดท้ายของคุณทันที
 
 **IMPORTANT: Markdown Table Formatting Rules**
 If you generate a table, you MUST follow these strict rules to ensure it renders correctly:
