@@ -465,9 +465,7 @@ const TableComponents = {
 // Date Divider Component
 const DateDivider = ({ date }) => {
   const formatDate = (dateStr) => {
-    console.log('DateDivider received date:', dateStr, 'Type:', typeof dateStr);
     const d = new Date(dateStr);
-    console.log('Parsed date object:', d, 'toDateString:', d.toDateString());
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);

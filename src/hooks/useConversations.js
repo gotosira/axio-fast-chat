@@ -15,6 +15,7 @@ export function useConversations(currentConversationId, onConversationChange, se
             setConversations(data);
 
             // Load folders too
+            const folderRes = await fetch(`${API_URL}/folders`);
             if (folderRes.ok) {
                 const folderData = await folderRes.json();
                 if (Array.isArray(folderData)) {
