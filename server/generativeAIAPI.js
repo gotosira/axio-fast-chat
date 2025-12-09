@@ -165,7 +165,7 @@ async function loadAllDocuments(aiId = 'baobao', options = {}) {
 
                                 // Return attributes for the <img> tag
                                 return {
-                                    src: `http://localhost:3001/api/images/${imageId}`,
+                                    src: `/api/images/${imageId}`,
                                     alt: `Image from ${fileName}`
                                 };
                             })
@@ -916,7 +916,7 @@ app.post('/api/chat', async (req, res) => {
                 while ((imageMatch = imageRefRegex.exec(text)) !== null) {
                     const imageId = imageMatch[1];
                     if (!usedDefinitions.has(imageId) && flowflowImageCache.has(imageId)) {
-                        const urlDefinition = `[${imageId}]: http://localhost:${PORT}/api/images/${imageId}`;
+                        const urlDefinition = `[${imageId}]: /api/images/${imageId}`;
                         definitionsToAppend.push(urlDefinition);
                         usedDefinitions.add(imageId);
                     }
