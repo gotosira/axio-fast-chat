@@ -178,12 +178,9 @@ ${fileContext}
             modelName = "openai/gpt-oss-120b"; // As requested
         }
 
-        // Combine default tools with passed tools
-        const allTools = [
-            { type: "browser_search" },
-            { type: "code_interpreter" },
-            ...tools
-        ];
+        // Only use valid function-type tools if provided
+        // Note: Groq only supports type: "function" or "mcp", NOT browser_search/code_interpreter
+        const validTools = tools && tools.length > 0 ? tools : undefined;
 
         // Main Loop for Tool Calling
         while (true) {
@@ -196,7 +193,7 @@ ${fileContext}
                 stream: true,
                 reasoning_effort: "high",
                 stop: null,
-                tools: allTools,
+                ...(validTools && { tools: validTools }),
                 service_tier: "auto"
             });
 
