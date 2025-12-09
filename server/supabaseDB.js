@@ -6,23 +6,41 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config({ path: path.join(__dirname, '..', '.env') });
+// Try to load .env file (works locally, ignored on Vercel)
+try {
+    dotenv.config({ path: path.join(__dirname, '..', '.env') });
+} catch (e) {
+    // Ignore dotenv errors on serverless
+}
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 
+// Don't crash the server if credentials are missing - just warn
+// On Vercel, env vars come from the dashboard, not .env file
 if (!supabaseUrl || !supabaseKey) {
-    console.error('❌ Missing Supabase credentials. Please set SUPABASE_URL and SUPABASE_ANON_KEY in .env');
-    process.exit(1);
+    console.error('❌ Missing Supabase credentials. Please set SUPABASE_URL and SUPABASE_ANON_KEY in environment variables.');
+    console.error('   On Vercel: Add these in the Vercel dashboard under Settings > Environment Variables');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Create client even if credentials are missing (will fail gracefully on API calls)
+export const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+// Helper to check if Supabase is available before operations
+function ensureSupabase() {
+    if (!supabase) {
+        throw new Error('Supabase client not initialized. Check SUPABASE_URL and SUPABASE_ANON_KEY environment variables.');
+    }
+    return supabase;
+}
 
 // Authentication operations
 export const authDB = {
     // Sign up new user
     async signUp(email, password, metadata = {}) {
-        const { data, error } = await supabase.auth.signUp({
+        const { data, error } = await ensureSupabase().auth.signUp({
             email,
             password,
             options: {
@@ -36,7 +54,7 @@ export const authDB = {
 
     // Sign in existing user
     async signIn(email, password) {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await ensureSupabase().auth.signInWithPassword({
             email,
             password
         });
@@ -47,27 +65,27 @@ export const authDB = {
 
     // Sign out current user
     async signOut() {
-        const { error } = await supabase.auth.signOut();
+        const { error } = await ensureSupabase().auth.signOut();
         if (error) throw error;
     },
 
     // Get current session
     async getSession() {
-        const { data, error } = await supabase.auth.getSession();
+        const { data, error } = await ensureSupabase().auth.getSession();
         if (error) throw error;
         return data.session;
     },
 
     // Get current user
     async getCurrentUser() {
-        const { data: { user }, error } = await supabase.auth.getUser();
+        const { data: { user }, error } = await ensureSupabase().auth.getUser();
         if (error) throw error;
         return user;
     },
 
     // Send password reset email
     async resetPassword(email) {
-        const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        const { data, error } = await ensureSupabase().auth.resetPasswordForEmail(email, {
             redirectTo: `${window.location.origin}/reset-password`
         });
 
@@ -77,7 +95,7 @@ export const authDB = {
 
     // Update password (after reset)
     async updatePassword(newPassword) {
-        const { data, error } = await supabase.auth.updateUser({
+        const { data, error } = await ensureSupabase().auth.updateUser({
             password: newPassword
         });
 
@@ -87,7 +105,7 @@ export const authDB = {
 
     // Listen to auth state changes
     onAuthStateChange(callback) {
-        return supabase.auth.onAuthStateChange(callback);
+        return ensureSupabase().auth.onAuthStateChange(callback);
     }
 };
 
@@ -95,7 +113,7 @@ export const authDB = {
 export const conversationDB = {
     // Get all conversations
     async getAll(aiId = null) {
-        let query = supabase
+        let query = ensureSupabase()
             .from('conversations')
             .select('*')
             .order('updated_at', { ascending: false });
@@ -113,7 +131,7 @@ export const conversationDB = {
 
     // Get single conversation
     async get(id) {
-        const { data, error } = await supabase
+        const { data, error } = await ensureSupabase()
             .from('conversations')
             .select('*')
             .eq('id', id)

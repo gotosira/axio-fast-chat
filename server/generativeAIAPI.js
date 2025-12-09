@@ -59,7 +59,8 @@ async function initializeFlowFlowImageCache() {
     if (isImageCacheInitialized) return;
 
     console.log('🖼️ Initializing FlowFlow image cache...');
-    const documents = await loadAllDocuments('flowflow');
+    // Force local load to get images from DOCX files
+    const documents = await loadAllDocuments('flowflow', { forceLocal: true });
     const regex = /^\[(.*?)\]:\s*<?(data:image\/([^;]+);base64,([^>\n\r]+))>?/gm;
 
     for (const doc of documents) {
@@ -100,11 +101,12 @@ initializeFlowFlowImageCache();
 /**
  * Read all documents from the knowledge base for specific AI
  */
-async function loadAllDocuments(aiId = 'baobao') {
+async function loadAllDocuments(aiId = 'baobao', options = {}) {
     const KNOWLEDGE_BASE_PATH = getKnowledgeBasePath(aiId);
 
     // FlowFlow uses Supabase Vector Store, so skip local file loading
-    if (aiId === 'flowflow') {
+    // UNLESS forceLocal is true (e.g. for image cache initialization)
+    if (aiId === 'flowflow' && !options.forceLocal) {
         console.log('🌊 FlowFlow: Skipping local file loading (Using Supabase Vector Store)');
         return [];
     }
