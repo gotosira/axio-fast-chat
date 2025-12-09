@@ -1000,15 +1000,13 @@ app.post('/api/chat', async (req, res) => {
 
             // Check if there is an image file attached
             const isImage = fileData && fileData.mimeType && fileData.mimeType.startsWith('image/');
+            const useImageGen = req.body.use_image_gen || false; // Check for manual toggle
 
             if (['baobao', 'flowflow', 'pungpung', 'deedee'].includes(ai_id) && !isImage) {
 
-                // Special check for FlowFlow Image Generation Intent
-                const imageKeywords = ['generate image', 'draw', 'create image', 'วาดรูป', 'สร้างรูป', 'gen รูป', 'เจนรูป', 'edit image', 'แก้รูป', 'เพิ่ม', 'ลบ', 'เปลี่ยน', 'logo', 'icon', 'image', 'picture', 'photo', 'background', 'bg', 'color', 'style', 'ภาพ', 'รูป', 'สี', 'พื้นหลัง', 'โลโก้', 'ไอคอน'];
-                const isFlowFlowImageRequest = ai_id === 'flowflow' && imageKeywords.some(keyword => query.toLowerCase().includes(keyword));
-
-                if (isFlowFlowImageRequest) {
-                    console.log(`🎨 FlowFlow Image Request detected via routing. Switching to Gemini...`);
+                // Check for Manual Image Gen Toggle (FlowFlow only)
+                if (ai_id === 'flowflow' && useImageGen) {
+                    console.log(`🎨 FlowFlow: Manual Image Gen Mode ON. Switching to Gemini 3 Pro...`);
                     stream = generateAIResponseStream(query, results, fileData, location, ai_id, history);
                 } else {
                     console.log(`🚀 Using Groq for ${ai_id}`);

@@ -10,7 +10,7 @@ import { ConversationSidebar } from './components/ConversationSidebar.jsx';
 import { NotificationPanel } from './components/NotificationPanel.jsx';
 import { ProfilePanel } from './components/ProfilePanel.jsx';
 import { useConversations } from './hooks/useConversations.js';
-import { ChevronRight, FileText, X, Plus, MoreHorizontal, Mic, Send, Menu, Bell, Server, PanelLeft } from 'lucide-react';
+import { ChevronRight, FileText, X, Plus, MoreHorizontal, Mic, Send, Menu, Bell, Server, PanelLeft, Palette, Search, MessageSquare } from 'lucide-react';
 import { McpConnectionModal } from './components/McpConnectionModal.jsx';
 import { WelcomeModal } from './components/WelcomeModal.jsx';
 import ImageEditModal from './components/ImageEditModal.jsx';
@@ -118,12 +118,12 @@ function useFastChat(callbacks, { currentConversationId, createConversation, set
   };
 
   // BAOBAO RESPONSE: Real Gemini AI with SSE streaming - Shows thinking process!
-  const simulateBackendResponse = async (updateFn, userMessage, file = null, aiId = 'baobao') => {
+  const simulateBackendResponse = async (updateFn, userMessage, file = null, aiId = 'baobao', useImageGen = false) => {
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage, file, location, ai_id: aiId, conversation_id: currentConversationId })
+        body: JSON.stringify({ message: userMessage, file, location, ai_id: aiId, conversation_id: currentConversationId, use_image_gen: useImageGen })
       });
 
       if (!response.ok) {
@@ -188,7 +188,7 @@ function useFastChat(callbacks, { currentConversationId, createConversation, set
     }
   };
 
-  const sendMessage = async (content, file = null) => {
+  const sendMessage = async (content, file = null, isImageGenMode = false) => {
     // Ensure conversation exists
     let conversationId = currentConversationId;
     let isNewConversation = false;
@@ -284,7 +284,9 @@ function useFastChat(callbacks, { currentConversationId, createConversation, set
 
       abortController.current = new AbortController();
 
-      const imageIntent = selectedAI === 'flowflow' ? detectImageGenerationIntent(content) : null;
+      // Only check for image intent if NOT in manual image gen mode
+      // If manual mode is ON, we skip the auto-detection and go straight to backend with flag
+      const imageIntent = (selectedAI === 'flowflow' && !isImageGenMode) ? detectImageGenerationIntent(content) : null;
       if (imageIntent) {
         console.log('🎨 Image generation intent detected:', imageIntent);
         callbacks.onPendingImageRequest?.({ prompt: content, userMsgId, assistantMsgId, conversationId });
@@ -307,7 +309,7 @@ function useFastChat(callbacks, { currentConversationId, createConversation, set
           }
           return msg;
         }));
-      }, content, file, selectedAI); // Pass user message, file, and selected AI
+      }, content, file, selectedAI, isImageGenMode); // Pass user message, file, selected AI, and toggle state
 
       // Mark finished
       setMessages((prev) => prev.map((msg) =>
@@ -678,10 +680,11 @@ const MessageRow = memo(({ message, onPreview, onEditImage, aiContext }) => {
 }, (prev, next) => prev.message.content === next.message.content && prev.message.status === next.message.status && prev.message.references === next.message.references);
 
 // C. Composer
-const Composer = ({ onSend, isStreaming, onStop, onAssetUpload, onPreview, selectedAsset, onOpenMcpModal }) => {
+const Composer = ({ onSend, isStreaming, onStop, onAssetUpload, onPreview, selectedAsset, onOpenMcpModal, selectedAI }) => {
   const [input, setInput] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isImageGenMode, setIsImageGenMode] = useState(false); // New state for toggle
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -725,7 +728,7 @@ const Composer = ({ onSend, isStreaming, onStop, onAssetUpload, onPreview, selec
 
   const handleSend = () => {
     if ((input.trim() || selectedFile) && !isStreaming) {
-      onSend(input, selectedFile);
+      onSend(input, selectedFile, isImageGenMode); // Pass toggle state
       setInput('');
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -802,10 +805,7 @@ const Composer = ({ onSend, isStreaming, onStop, onAssetUpload, onPreview, selec
   const handleDragLeave = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    // Only set to false if we're leaving the drop zone entirely
-    if (e.currentTarget === e.target) {
-      setIsDragging(false);
-    }
+    setIsDragging(false);
   };
 
   const handleDragOver = (e) => {
@@ -818,125 +818,150 @@ const Composer = ({ onSend, isStreaming, onStop, onAssetUpload, onPreview, selec
     e.stopPropagation();
     setIsDragging(false);
 
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      // Use the existing file select handler
-      const fakeEvent = { target: { files: [file] } };
-      handleFileSelect(fakeEvent);
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64 = e.target.result.split(',')[1];
+        const newFile = {
+          id: uuidv4(),
+          name: file.name,
+          mimeType: file.type,
+          data: base64,
+          timestamp: Date.now()
+        };
+        setSelectedFile(newFile);
+        onAssetUpload(newFile);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   return (
-    <FadeInText as="div" direction="up" delayMs={400} className="w-full max-w-3xl mx-auto p-4">
+    <div className="w-full max-w-3xl mx-auto px-4 pb-6">
       <div
-        className={`relative flex flex-col p-2 rounded-[2rem] border shadow-lv1 focus-within:shadow-lv2 transition-all duration-200
-          bg-white dark:bg-neutral-800
-          ${isDragging
-            ? 'border-blue-500 dark:border-blue-400 border-2 shadow-lg scale-[1.02] bg-blue-50/50 dark:bg-blue-900/20'
-            : 'border-outline-base dark:border-neutral-700 focus-within:border-outline-hover dark:focus-within:border-neutral-600'
-          }`}
+        className={`relative flex flex-col p-4 rounded-[24px] border transition-all duration-200 bg-white dark:bg-neutral-800 shadow-sm hover:shadow-md ${isDragging ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-200 dark:border-neutral-700'
+          } ${isStreaming ? 'opacity-70 pointer-events-none' : ''}`}
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-
-        {/* Hidden File Input */}
         <input
           type="file"
           ref={fileInputRef}
-          onChange={handleFileSelect}
           className="hidden"
-          accept="image/*,.pdf,.csv,.docx,.xlsx,.ppt,.pptx,.html"
+          onChange={handleFileSelect}
+          accept="image/*,.pdf,.txt,.md,.csv,.json"
         />
 
-        {/* Attached File Card (Inside the box) */}
-        {selectedFile && (
-          <div className="mx-2 mt-2 mb-1 p-2 bg-neutral-surface dark:bg-neutral-700 rounded-xl border border-neutral-cont-base dark:border-neutral-600 flex items-center gap-3 group animate-in fade-in slide-in-from-bottom-1">
-            <div
-              className="w-10 h-10 bg-white dark:bg-neutral-600 rounded-lg border border-slate-200 dark:border-neutral-500 flex items-center justify-center text-slate-500 dark:text-neutral-300 cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => onPreview(selectedFile)}
-            >
-              {selectedFile.mimeType.startsWith('image/') ? (
-                <img src={`data:${selectedFile.mimeType};base64,${selectedFile.data}`} className="w-full h-full object-cover rounded-lg" alt="preview" />
-              ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
-              )}
-            </div>
-            <div className="flex flex-col flex-1 min-w-0 cursor-pointer" onClick={() => onPreview(selectedFile)}>
-              <span className="text-sm font-semibold text-slate-800 dark:text-neutral-100 truncate">{selectedFile.name}</span>
-              <span className="text-[10px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider">{selectedFile.mimeType.split('/')[1]}</span>
-            </div>
-            <button
-              onClick={(e) => { e.stopPropagation(); setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
-              className="p-1.5 hover:bg-slate-200 dark:hover:bg-neutral-600 rounded-full text-slate-400 dark:text-neutral-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
+        {/* Top Section: Search Icon + Input */}
+        <div className="flex items-start gap-3 mb-2">
+          <MessageSquare className="w-5 h-5 text-slate-400 mt-2.5" />
+          <div className="flex-1 min-w-0 relative">
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onPaste={handlePaste}
+              placeholder={isImageGenMode ? "Describe the image you want to generate..." : "Message FlowFlow..."}
+              className="w-full max-h-[200px] py-2 bg-transparent border-none focus:ring-0 focus:outline-none resize-none text-base text-slate-700 dark:text-slate-200 placeholder:text-slate-400 leading-relaxed scrollbar-hide"
+              rows={1}
+            />
+            {selectedFile && (
+              <div className="mt-2 group relative inline-flex items-center gap-3 px-3 py-2 bg-slate-50 dark:bg-neutral-700/50 rounded-xl border border-slate-200 dark:border-neutral-700">
+                {/* Thumbnail or Icon */}
+                <div className="w-8 h-8 rounded-lg bg-white dark:bg-neutral-600 flex items-center justify-center overflow-hidden shrink-0 border border-slate-100 dark:border-neutral-600">
+                  {selectedFile.mimeType.startsWith('image/') ? (
+                    <img src={`data:${selectedFile.mimeType};base64,${selectedFile.data}`} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <FileText size={16} className="text-slate-400" />
+                  )}
+                </div>
+
+                {/* Name */}
+                <div className="flex flex-col min-w-0 max-w-[150px]">
+                  <span className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate">{selectedFile.name}</span>
+                  <span className="text-[10px] text-slate-400 uppercase">{selectedFile.mimeType.split('/')[1] || 'FILE'}</span>
+                </div>
+
+                {/* Remove Button */}
+                <button
+                  onClick={() => setSelectedFile(null)}
+                  className="ml-1 p-1 text-slate-400 hover:text-red-500 transition-colors"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
-        {/* Text Input */}
-        <textarea
-          ref={textareaRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
-          placeholder={selectedFile ? "Add a message..." : "Ask another question..."}
-          rows={1}
-          className="w-full max-h-[150px] py-3 px-4 bg-transparent border-none outline-none text-slate-800 dark:text-neutral-100 placeholder:text-slate-400 dark:placeholder:text-neutral-500 resize-none leading-relaxed"
-        />
-
-        {/* Toolbar */}
-        <div className="flex items-center justify-between px-2 pb-1">
-          <div className="flex items-center gap-1">
+        {/* Bottom Section: Actions */}
+        <div className="flex items-center justify-between mt-1">
+          <div className="flex items-center gap-2">
+            {/* Add Button (Pill) */}
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-8 h-8 flex items-center justify-center text-slate-600 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-700 transition-all rounded-full"
-              title="Upload file"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 dark:border-neutral-600 text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-neutral-700 transition-colors"
             >
-              <Plus size={20} />
+              <Plus size={14} />
+              <span>Add files</span>
             </button>
 
-            {/* More Options (Dots) */}
+            {/* More Options */}
             <button
               onClick={onOpenMcpModal}
-              className="w-8 h-8 flex items-center justify-center text-slate-400 dark:text-neutral-400 hover:text-slate-600 dark:hover:text-neutral-200 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-neutral-700"
+              className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors rounded-md hover:bg-slate-100 dark:hover:bg-neutral-700"
               title="MCP Connections"
             >
-              <MoreHorizontal size={20} />
+              <MoreHorizontal size={18} />
             </button>
 
-            {/* Microphone */}
-            <button className="w-8 h-8 flex items-center justify-center text-slate-400 dark:text-neutral-400 hover:text-slate-600 dark:hover:text-neutral-200 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-neutral-700">
-              <Mic size={20} />
-            </button>
+            {/* Image Gen Toggle */}
+            {selectedAI === 'flowflow' && (
+              <button
+                onClick={() => setIsImageGenMode(!isImageGenMode)}
+                className={`p-1.5 transition-colors rounded-md ${isImageGenMode ? 'text-pink-500 bg-pink-50 dark:bg-pink-900/20' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-neutral-700'}`}
+                title={isImageGenMode ? "Image Generation ON" : "Image Generation OFF"}
+              >
+                <Palette size={18} />
+              </button>
+            )}
           </div>
 
-          {/* Send / Stop Button */}
-          {isStreaming ? (
-            <button onClick={onStop} className="p-2 rounded-full bg-error-base hover:bg-error-pressed text-error-on-base transition-all shadow-lv1">
-              <div className="w-3 h-3 bg-white rounded-[1px] m-1" />
+          <div className="flex items-center gap-3">
+            {/* Microphone */}
+            <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+              <Mic size={20} />
             </button>
-          ) : (
-            <button
-              onClick={handleSend}
-              disabled={!input.trim() && !selectedFile}
-              className={`p-2 rounded-full transition-all shadow-lv1 ${input.trim() || selectedFile ? 'bg-primary-base text-primary-on-base hover:bg-primary-hover' : 'bg-neutral-cont-base dark:bg-neutral-700 text-neutral-on-cont-base dark:text-neutral-400'}`}
-            >
-              {/* Arrow Right (Send) */}
-              <Send size={20} className="m-0.5" />
-            </button>
-          )}
+
+            {/* Send Button */}
+            {isStreaming ? (
+              <button onClick={onStop} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200 dark:bg-neutral-700 hover:bg-red-100 dark:hover:bg-red-900/30 group transition-all">
+                <div className="w-2.5 h-2.5 bg-slate-500 dark:bg-slate-400 group-hover:bg-red-500 rounded-[1px]" />
+              </button>
+            ) : (
+              <button
+                onClick={handleSend}
+                disabled={!input.trim() && !selectedFile}
+                className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${input.trim() || selectedFile
+                  ? 'bg-black dark:bg-white text-white dark:text-black hover:opacity-90 shadow-sm'
+                  : 'bg-slate-100 dark:bg-neutral-700 text-slate-400 dark:text-neutral-500'
+                  }`}
+              >
+                <Send size={16} className={input.trim() || selectedFile ? 'ml-0.5' : ''} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       <div className="text-center mt-2 text-[10px] text-slate-400 dark:text-neutral-500 font-medium tracking-wide opacity-0 focus-within:opacity-100 transition-opacity">
         Return to send · Shift + Return for newline
       </div>
-    </FadeInText>
+    </div>
   );
 };
 
@@ -1603,6 +1628,7 @@ export default function App() {
                 onPreview={handleFilePreview}
                 selectedAsset={selectedAsset}
                 onOpenMcpModal={() => setIsMcpModalOpen(true)}
+                selectedAI={selectedAI}
               />
               <p className="text-center text-xs text-text-muted mt-2">
                 AXIO AI Platform can make mistakes. Please verify important information.
