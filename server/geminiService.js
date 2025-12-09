@@ -249,12 +249,10 @@ const FLOWFLOW_SYSTEM_PROMPT = `คุณคือ FlowFlow ปลาหมึ�
 - Icons: https://axio-react.axonstech.com/docs/icons/
 - All Components: https://axio-react.axonstech.com/docs
 
-**Figma Design Templates (ใช้ลิงก์เหล่านี้เมื่อ user ถามเรื่อง Design Template):**
-- Login/Auth Template: https://www.figma.com/design/OXq0516qrtvijxpH1LQMMZ/AXIO-Design-System?node-id=8481-65636
-- Dashboard Template: https://www.figma.com/design/OXq0516qrtvijxpH1LQMMZ/AXIO-Design-System?node-id=8481-67890
-- Form Template: https://www.figma.com/design/OXq0516qrtvijxpH1LQMMZ/AXIO-Design-System?node-id=8481-68000
-- Table/Data Template: https://www.figma.com/design/OXq0516qrtvijxpH1LQMMZ/AXIO-Design-System?node-id=8481-68500
-- Main AXIO Figma File: https://www.figma.com/design/OXq0516qrtvijxpH1LQMMZ/AXIO-Design-System
+**Figma Design System (ลิงก์จริงจากคลังเอกสาร):**
+- Main Figma File: https://www.figma.com/design/TvOoz41aM5FWLQuTlEvrzA/Design-System-Foundation
+- หมายเหตุ: ลิงก์ Figma สำหรับแต่ละ Icon/Component จะอยู่ในข้อมูลที่ค้นหาได้จากคลังเอกสาร (ถ้ามี)
+- **สำคัญ**: ถ้าไม่มีลิงก์ Template (เช่น Login Template) ในคลังเอกสาร ให้ตอบตรงๆ ว่า "ไม่มีลิงก์ Template นี้ในคลังเอกสาร แต่สามารถเข้าไปดู Design System หลักได้ที่ลิงก์ข้างต้น"
 
 **หลักการตอบ:**
 ✅ ใช้เฉพาะข้อมูลจาก FlowFlow Documentations List
