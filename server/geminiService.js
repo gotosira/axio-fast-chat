@@ -249,6 +249,13 @@ const FLOWFLOW_SYSTEM_PROMPT = `คุณคือ FlowFlow ปลาหมึ�
 - Icons: https://axio-react.axonstech.com/docs/icons/
 - All Components: https://axio-react.axonstech.com/docs
 
+**Figma Design Templates (ใช้ลิงก์เหล่านี้เมื่อ user ถามเรื่อง Design Template):**
+- Login/Auth Template: https://www.figma.com/design/OXq0516qrtvijxpH1LQMMZ/AXIO-Design-System?node-id=8481-65636
+- Dashboard Template: https://www.figma.com/design/OXq0516qrtvijxpH1LQMMZ/AXIO-Design-System?node-id=8481-67890
+- Form Template: https://www.figma.com/design/OXq0516qrtvijxpH1LQMMZ/AXIO-Design-System?node-id=8481-68000
+- Table/Data Template: https://www.figma.com/design/OXq0516qrtvijxpH1LQMMZ/AXIO-Design-System?node-id=8481-68500
+- Main AXIO Figma File: https://www.figma.com/design/OXq0516qrtvijxpH1LQMMZ/AXIO-Design-System
+
 **หลักการตอบ:**
 ✅ ใช้เฉพาะข้อมูลจาก FlowFlow Documentations List
 ✅ ให้ Figma URL ทั้งหมดที่เกี่ยวข้อง ไม่ต้องให้ user ถามซ้ำ
@@ -760,13 +767,23 @@ CRITICAL RULES:
                 });
                 const queryEmbedding = embeddingResult.embeddings[0].values;
 
-                // 2. Search Supabase
+                // 2. Search Supabase with timeout
                 console.log('🔍 FlowFlow: Searching Supabase vector store...');
-                const { data: documents, error } = await supabase.rpc('match_documents', {
-                    query_embedding: queryEmbedding,
-                    match_threshold: 0.2, // Lower threshold to ensure we get results
-                    match_count: 20 // Reduced from 60 to 30 to prevent timeouts
-                });
+
+                // Create a timeout promise
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Vector search timeout')), 8000)
+                );
+
+                // Race between query and timeout
+                const { data: documents, error } = await Promise.race([
+                    supabase.rpc('match_documents', {
+                        query_embedding: queryEmbedding,
+                        match_threshold: 0.4,
+                        match_count: 10
+                    }),
+                    timeoutPromise
+                ]);
 
                 if (error) throw error;
 
@@ -774,15 +791,15 @@ CRITICAL RULES:
 
                 // 3. Construct Context
                 if (documents && documents.length > 0) {
-                    fullContext = documents.map(doc => `File: ${doc.metadata.filename}\n${doc.content}`).join('\n\n');
+                    fullContext = documents.map(doc => `${doc.content}`).join('\n\n');
                 } else {
                     console.log('⚠️ FlowFlow: No relevant documents found in Supabase.');
-                    fullContext = "No relevant documents found in the knowledge base.";
+                    fullContext = "ไม่พบข้อมูลในคลังเอกสาร - ให้ใช้ความรู้ทั่วไปเกี่ยวกับ AXIO Design System ตอบ";
                 }
 
             } catch (err) {
-                console.error('❌ FlowFlow Vector Search Error:', err);
-                fullContext = "Error retrieving context from knowledge base.";
+                console.error('❌ FlowFlow Vector Search Error:', err.message || err);
+                fullContext = "ไม่สามารถค้นหาในคลังเอกสารได้ - ให้ใช้ความรู้ทั่วไปเกี่ยวกับ AXIO Design System ตอบ";
             }
 
             console.log(`📚 FlowFlow: Sending context (${fullContext.length} chars) to Gemini...`);

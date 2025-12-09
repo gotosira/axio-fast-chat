@@ -42,13 +42,23 @@ export async function* generateGroqResponseStream(userQuery, searchResults, file
                     });
                     const queryEmbedding = embeddingResult.embeddings[0].values;
 
-                    // 2. Search Supabase
+                    // 2. Search Supabase with timeout
                     console.log('🔍 FlowFlow (Groq): Searching Supabase vector store...');
-                    const { data: documents, error } = await supabase.rpc('match_documents', {
-                        query_embedding: queryEmbedding,
-                        match_threshold: 0.3,
-                        match_count: 20
-                    });
+
+                    // Create a timeout promise
+                    const timeoutPromise = new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error('Vector search timeout')), 8000)
+                    );
+
+                    // Race between query and timeout
+                    const { data: documents, error } = await Promise.race([
+                        supabase.rpc('match_documents', {
+                            query_embedding: queryEmbedding,
+                            match_threshold: 0.4,
+                            match_count: 10
+                        }),
+                        timeoutPromise
+                    ]);
 
                     if (error) throw error;
 
@@ -56,15 +66,15 @@ export async function* generateGroqResponseStream(userQuery, searchResults, file
 
                     if (documents && documents.length > 0) {
                         context = '\n\n**📚 ข้อมูลจากคลังเอกสาร (Supabase Vector Store):**\n\n';
-                        context += documents.map(doc => `File: ${doc.metadata.filename}\n${doc.content}`).join('\n\n');
+                        context += documents.map(doc => `${doc.content}`).join('\n\n');
                         context += `\n**หมายเหตุ:** ให้ตอบจากข้อมูลข้างต้นก่อนเสมอ ถ้าข้อมูลไม่เพียงพอจริงๆ ถึงจะค้นหาเพิ่มจาก Google\n`;
                     } else {
-                        context = '\n\n**ไม่พบข้อมูลในคลังเอกสาร**\n\n';
+                        context = '\n\n**ไม่พบข้อมูลในคลังเอกสาร - ให้ใช้ความรู้ทั่วไปเกี่ยวกับ AXIO Design System ตอบ**\n\n';
                     }
                 }
             } catch (err) {
-                console.error('❌ FlowFlow (Groq) Vector Search Error:', err);
-                context = "Error retrieving context from knowledge base.";
+                console.error('❌ FlowFlow (Groq) Vector Search Error:', err.message || err);
+                context = '\n\n**ไม่สามารถค้นหาในคลังเอกสารได้ - ให้ใช้ความรู้ทั่วไปเกี่ยวกับ AXIO Design System ตอบ**\n\n';
             }
         }
         // Standard local file search for other AIs
