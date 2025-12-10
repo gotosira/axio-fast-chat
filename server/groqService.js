@@ -154,13 +154,17 @@ export async function* generateGroqResponseStream(userQuery, searchResults, file
                     // Filter results by ai_id in metadata
                     const filteredDocs = documents?.filter(doc =>
                         doc.metadata?.ai_id === aiId
-                    ).slice(0, 5) || [];  // Take top 5 after filtering
+                    ).slice(0, 3) || [];  // Take top 3 after filtering (reduced for Llama 4)
 
                     console.log(`📚 ${aiId}: Found ${filteredDocs.length} relevant chunks (from ${documents?.length || 0} total).`);
 
                     if (filteredDocs.length > 0) {
                         context = '\n\n**📚 ข้อมูลจากคลังความรู้:**\n\n';
-                        context += filteredDocs.map(doc => `${doc.content}`).join('\n\n');
+                        // Truncate each chunk for FlowFlow (Llama 4 has smaller context)
+                        const maxChunkLen = aiId === 'flowflow' ? 500 : 1500;
+                        context += filteredDocs.map(doc =>
+                            doc.content.substring(0, maxChunkLen) + (doc.content.length > maxChunkLen ? '...' : '')
+                        ).join('\n\n');
                     } else {
                         context = '';
                     }
@@ -238,14 +242,24 @@ ${fileContext}
         }
 
         // Prepare messages array with history
-        console.log(`📜 ${aiId}: Using ${history.length} messages from history`);
+        // Limit history for FlowFlow (Llama 4 has smaller context)
+        const maxHistory = aiId === 'flowflow' ? 4 : history.length;
+        const trimmedHistory = history.slice(-maxHistory);
+        console.log(`📜 ${aiId}: Using ${trimmedHistory.length} messages from history (max: ${maxHistory})`);
 
         let currentMessages = [
             { role: 'system', content: fullSystemInstruction },
-            ...history.map(msg => ({
-                role: msg.role === 'model' ? 'assistant' : 'user',
-                content: msg.parts[0].text // Adapt from Gemini history format
-            }))
+            ...trimmedHistory.map(msg => {
+                // Truncate long messages for FlowFlow
+                let text = msg.parts[0].text;
+                if (aiId === 'flowflow' && text.length > 1000) {
+                    text = text.substring(0, 1000) + '...';
+                }
+                return {
+                    role: msg.role === 'model' ? 'assistant' : 'user',
+                    content: text
+                };
+            })
         ];
 
         // For FlowFlow with vision, only load images when query is about visual content
