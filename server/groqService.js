@@ -278,8 +278,8 @@ ${fileContext}
         console.log(`🤖 Requesting Groq stream for ${aiId}...`);
 
         // Only use valid function-type tools if provided
-        // Note: Groq only supports type: "function" or "mcp", NOT browser_search/code_interpreter
-        const validTools = tools && tools.length > 0 ? tools : undefined;
+        // Note: Llama 4 Maverick with vision doesn't work well with tools, so disable for FlowFlow
+        const validTools = (aiId === 'flowflow') ? undefined : (tools && tools.length > 0 ? tools : undefined);
 
         // Main Loop for Tool Calling
         while (true) {
