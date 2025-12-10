@@ -36,6 +36,7 @@ app.use('/branding', express.static(path.join(process.cwd(), 'public/branding'))
 
 // Serve FlowFlow document images
 app.use('/flowflow-images', express.static(path.join(process.cwd(), 'public/flowflow-images')));
+app.use('/temp-images', express.static(path.join(process.cwd(), 'public/temp-images')));
 
 // Root route for health check
 app.get('/', (req, res) => {

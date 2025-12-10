@@ -109,6 +109,13 @@ async function loadDocxImagesForQuery(query, maxImages = 3) {
 
         const [startRange, endRange] = targetDoc.imageRange;
         const images = [];
+        const imageUrls = [];
+
+        // Create temp images directory if not exists
+        const tempImagesDir = path.join(process.cwd(), 'public/temp-images');
+        if (!fs.existsSync(tempImagesDir)) {
+            fs.mkdirSync(tempImagesDir, { recursive: true });
+        }
 
         for (let i = startRange - 1; i < Math.min(endRange, mediaFiles.length) && images.length < maxImages; i++) {
             const file = mediaFiles[i];
@@ -120,16 +127,26 @@ async function loadDocxImagesForQuery(query, maxImages = 3) {
                 ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' :
                     'image/' + ext;
 
+            // Save image to temp folder for serving
+            const safeDocName = targetDoc.file.replace(/[^a-zA-Z0-9]/g, '_');
+            const imageName = `${safeDocName}_${i + 1}.${ext}`;
+            const imagePath = path.join(tempImagesDir, imageName);
+            fs.writeFileSync(imagePath, Buffer.from(content, 'base64'));
+
+            const imageUrl = `http://localhost:3001/temp-images/${imageName}`;
+            imageUrls.push(imageUrl);
+
             images.push({
                 id: `${targetDoc.file}_img_${i + 1}`,
                 base64: content,
                 mimeType,
-                source: targetDoc.file
+                source: targetDoc.file,
+                url: imageUrl
             });
         }
 
         console.log(`🖼️ FlowFlow: Extracted ${images.length} images + ${textContent.length} chars text`);
-        return { images, text: textContent };
+        return { images, text: textContent, imageUrls };
     } catch (error) {
         console.error('Error loading DOCX:', error);
         return { images: [], text: '' };
@@ -337,12 +354,17 @@ ${fileContext}
         if (aiId === 'flowflow') {
             // Load images + text directly from DOCX files
             const docContent = await loadDocxImagesForQuery(userQuery, 3);
-            const { images, text } = docContent;
+            const { images, text, imageUrls } = docContent;
 
             // Build message with text context from document
             let messageWithContext = currentMessageText;
             if (text) {
                 messageWithContext = `**📚 เนื้อหาจากเอกสาร:**\n${text}\n\n${currentMessageText}`;
+            }
+
+            // Add image URLs to context so AI can reference them
+            if (imageUrls && imageUrls.length > 0) {
+                messageWithContext += `\n\n**🖼️ รูปภาพที่แนบมา (ใช้ลิงก์เหล่านี้แสดงผล):**\n${imageUrls.map((url, i) => `${i + 1}. ${url}`).join('\n')}`;
             }
 
             if (images.length > 0) {
