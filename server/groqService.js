@@ -42,20 +42,20 @@ export async function* generateGroqResponseStream(userQuery, searchResults, file
                     });
                     const queryEmbedding = embeddingResult.embeddings[0].values;
 
-                    // 2. Search Supabase with timeout
+                    // 2. Search Supabase with timeout (short timeout for speed)
                     console.log('🔍 FlowFlow (Groq): Searching Supabase vector store...');
 
-                    // Create a timeout promise
+                    // Create a short timeout promise for faster response
                     const timeoutPromise = new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('Vector search timeout')), 8000)
+                        setTimeout(() => reject(new Error('Vector search timeout')), 5000)
                     );
 
-                    // Race between query and timeout
+                    // Race between query and timeout - use minimal params for speed
                     const { data: documents, error } = await Promise.race([
                         supabase.rpc('match_documents', {
                             query_embedding: queryEmbedding,
-                            match_threshold: 0.4,
-                            match_count: 10
+                            match_threshold: 0.5,
+                            match_count: 5
                         }),
                         timeoutPromise
                     ]);
@@ -65,16 +65,16 @@ export async function* generateGroqResponseStream(userQuery, searchResults, file
                     console.log(`📚 FlowFlow (Groq): Found ${documents?.length || 0} relevant chunks.`);
 
                     if (documents && documents.length > 0) {
-                        context = '\n\n**📚 ข้อมูลจากคลังเอกสาร (Supabase Vector Store):**\n\n';
+                        context = '\n\n**📚 ข้อมูลจาก Design System:**\n\n';
                         context += documents.map(doc => `${doc.content}`).join('\n\n');
-                        context += `\n**หมายเหตุ:** ให้ตอบจากข้อมูลข้างต้นก่อนเสมอ ถ้าข้อมูลไม่เพียงพอจริงๆ ถึงจะค้นหาเพิ่มจาก Google\n`;
                     } else {
-                        context = '\n\n**ไม่พบข้อมูลในคลังเอกสาร - ให้ใช้ความรู้ทั่วไปเกี่ยวกับ AXIO Design System ตอบ**\n\n';
+                        context = '';
                     }
                 }
             } catch (err) {
                 console.error('❌ FlowFlow (Groq) Vector Search Error:', err.message || err);
-                context = '\n\n**ไม่สามารถค้นหาในคลังเอกสารได้ - ให้ใช้ความรู้ทั่วไปเกี่ยวกับ AXIO Design System ตอบ**\n\n';
+                // Don't block - just proceed without context
+                context = '';
             }
         }
         // Standard local file search for other AIs
@@ -102,38 +102,16 @@ export async function* generateGroqResponseStream(userQuery, searchResults, file
         // Get the appropriate system prompt
         const systemPrompt = getSystemPrompt(aiId);
 
-        // Streaming instructions
+        // Streaming instructions - optimized for speed
         const streamingInstructions = `
-**คำสั่งสำคัญสำหรับการตอบสนองที่รวดเร็วที่สุด (Critical Priority):**
-1. **เริ่มส่งข้อมูลทันที (Instant Stream):** ห้ามหยุดรอประมวลผล ห้ามคิดนาน
-2. **กระบวนการคิด (Thinking Block) - ต้องอยู่ลำดับแรกสุด:**
-   > **กระบวนการคิด:**
-   > [วิเคราะห์สั้นๆ 1-2 ประโยค]
+**คำสั่งสำคัญ - ตอบเร็วที่สุด:**
+1. **เริ่มตอบทันที** - ห้ามคิดนาน ส่งคำตอบเลย
+2. **กระบวนการคิด** (ถ้ามี) ต้องสั้นมาก 1 ประโยค แล้วตอบเลย:
+   > [คิดสั้นๆ]
    
-   **สำคัญมาก: กระบวนการคิดต้องอยู่ก่อนคำตอบเสมอ ห้ามใส่ไว้ท้าย**
+   [คำตอบ]
 
-3. **รูปแบบการตอบ (Response Format):**
-   ต้องตอบตามโครงสร้างนี้เท่านั้น ตามลำดับ:
-
-   1) กระบวนการคิด (Blockquote ก่อนเสมอ)
-   2) จากนั้นคำตอบหลัก:
-
-   ## [หัวข้อหลัก (Summarized Topic)]
-   [เนื้อหาหลัก อธิบายบริบท]
-
-   ### [หัวข้อย่อย]
-   * [ประเด็นสำคัญ 1]
-   * [ประเด็นสำคัญ 2]
-
-   [คำตอบส่วนที่เหลือ]
-
-   **การใช้เครื่องมือ:** ห้ามใช้ Google Search หรือ Tools อื่นๆ หากคำตอบมีอยู่ใน Context หรือเป็นความรู้ทั่วไป เพื่อความรวดเร็ว
-
-   **Minimal Design Style (บังคับใช้):**
-   - **Inline Code:** ใช้ Single Backticks (\` \`) สำหรับชื่อตัวแปร, Token, Hex Code, และค่าสั้นๆ เสมอ (ห้ามใช้ Code Block ใหญ่)
-   - **Example:**
-     - Background: \`main/surface/primary #F5FAFE\`
-     - Text: \`main/base/dark #344054\`
+3. **Minimal Design:** ใช้ \`inline code\` สำหรับชื่อตัวแปร/Token/Hex Code
 `;
 
         const fullSystemInstruction = `${systemPrompt}\n${streamingInstructions}`;
