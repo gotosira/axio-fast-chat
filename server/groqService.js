@@ -3,11 +3,90 @@ import { config } from './config.js';
 import { getSystemPrompt } from './geminiService.js';
 import { supabase } from './supabaseDB.js';
 import { GoogleGenAI } from '@google/genai';
+import fs from 'fs';
+import path from 'path';
 
 // Initialize Groq client
 const groq = new Groq({
     apiKey: config.groqApiKey
 });
+
+// FlowFlow document images directory
+const FLOWFLOW_IMAGES_DIR = path.join(process.cwd(), 'public/flowflow-images');
+
+/**
+ * Load relevant images for FlowFlow based on query keywords
+ * @param {string} query - User query
+ * @param {number} maxImages - Maximum images to return
+ * @returns {Array} Array of {id, base64, mimeType}
+ */
+function loadFlowFlowImages(query, maxImages = 3) {
+    try {
+        const indexPath = path.join(FLOWFLOW_IMAGES_DIR, 'index.json');
+        if (!fs.existsSync(indexPath)) return [];
+
+        const index = JSON.parse(fs.readFileSync(indexPath, 'utf-8'));
+        const queryLower = query.toLowerCase();
+
+        // Keywords to image mapping
+        const keywordMappings = [
+            { keywords: ['logo', 'โลโก้', 'axons', 'brand', 'branding'], source: '_AXIO_Design_System___Foundation', range: [10, 15] },
+            { keywords: ['color', 'สี', 'palette', 'primary', 'secondary'], source: '_AXIO_Design_System___Foundation', range: [20, 35] },
+            { keywords: ['typography', 'font', 'ฟอนต์', 'ตัวอักษร'], source: '_AXIO_Design_System___Foundation', range: [11, 11] },
+            { keywords: ['icon', 'ไอคอน'], source: '_List_of_System_Icon', range: [1, 50] },
+            { keywords: ['button', 'ปุ่ม'], source: '_Component_List', range: [1, 30] },
+            { keywords: ['input', 'text field', 'ช่องกรอก'], source: '_Component_List', range: [30, 60] },
+            { keywords: ['card', 'การ์ด'], source: '_Component_List', range: [100, 130] },
+            { keywords: ['modal', 'dialog', 'popup'], source: '_Component_List', range: [150, 180] },
+        ];
+
+        let targetImages = [];
+
+        // Find matching keywords
+        for (const mapping of keywordMappings) {
+            if (mapping.keywords.some(kw => queryLower.includes(kw))) {
+                const [start, end] = mapping.range;
+                for (let i = start; i <= end && targetImages.length < maxImages; i++) {
+                    const imgId = `${mapping.source}_img_${i}`;
+                    if (index[imgId]) {
+                        targetImages.push(imgId);
+                    }
+                }
+                break; // Use first matching keyword group
+            }
+        }
+
+        // If no specific match, return first few foundation images
+        if (targetImages.length === 0) {
+            targetImages = Object.keys(index).slice(0, maxImages);
+        }
+
+        // Load actual images
+        const images = [];
+        for (const imgId of targetImages.slice(0, maxImages)) {
+            const info = index[imgId];
+            if (!info) continue;
+
+            const ext = info.contentType?.split('/')[1] || 'png';
+            const imgPath = path.join(FLOWFLOW_IMAGES_DIR, `${imgId}.${ext}`);
+
+            if (fs.existsSync(imgPath)) {
+                const base64 = fs.readFileSync(imgPath).toString('base64');
+                images.push({
+                    id: imgId,
+                    base64,
+                    mimeType: info.contentType || 'image/png'
+                });
+            }
+        }
+
+        console.log(`🖼️ FlowFlow: Loaded ${images.length} relevant images for query`);
+        return images;
+    } catch (error) {
+        console.error('Error loading FlowFlow images:', error);
+        return [];
+    }
+}
 
 /**
  * Generate response using Groq with Streaming
@@ -147,23 +226,56 @@ ${fileContext}
 
 **คำถามจากผู้ใช้:** ${userQuery}`;
 
+        // Select model based on AI ID
+        let modelName = "llama-3.3-70b-versatile"; // Default
+
+        // FlowFlow uses Llama 4 Maverick with vision capabilities
+        if (aiId === 'flowflow') {
+            modelName = "meta-llama/llama-4-maverick-17b-128e-instruct";
+            console.log(`🦙 FlowFlow: Using Llama 4 Maverick with vision`);
+        } else if (['pungpung', 'deedee'].includes(aiId)) {
+            modelName = "llama-3.3-70b-versatile";
+        }
+
         // Prepare messages array
         let currentMessages = [
             { role: 'system', content: fullSystemInstruction },
             ...history.map(msg => ({
                 role: msg.role === 'model' ? 'assistant' : 'user',
                 content: msg.parts[0].text // Adapt from Gemini history format
-            })),
-            { role: 'user', content: currentMessageText }
+            }))
         ];
 
-        console.log(`🤖 Requesting Groq stream for ${aiId}...`);
+        // For FlowFlow with vision, load relevant images and add to user message
+        if (aiId === 'flowflow') {
+            const relevantImages = loadFlowFlowImages(userQuery, 3);
 
-        // Select model based on AI ID
-        let modelName = "llama-3.3-70b-versatile"; // Default
-        if (['flowflow', 'pungpung', 'deedee'].includes(aiId)) {
-            modelName = "openai/gpt-oss-120b"; // As requested
+            if (relevantImages.length > 0) {
+                // Build multimodal content for Llama 4 vision
+                const userContent = [
+                    { type: 'text', text: currentMessageText }
+                ];
+
+                // Add images
+                for (const img of relevantImages) {
+                    userContent.push({
+                        type: 'image_url',
+                        image_url: {
+                            url: `data:${img.mimeType};base64,${img.base64}`
+                        }
+                    });
+                }
+
+                currentMessages.push({ role: 'user', content: userContent });
+                console.log(`🖼️ FlowFlow: Added ${relevantImages.length} images to vision request`);
+            } else {
+                currentMessages.push({ role: 'user', content: currentMessageText });
+            }
+        } else {
+            currentMessages.push({ role: 'user', content: currentMessageText });
         }
+
+        console.log(`🤖 Requesting Groq stream for ${aiId}...`);
 
         // Only use valid function-type tools if provided
         // Note: Groq only supports type: "function" or "mcp", NOT browser_search/code_interpreter
@@ -175,13 +287,11 @@ ${fileContext}
                 messages: currentMessages,
                 model: modelName,
                 temperature: 1,
-                max_completion_tokens: 65536,
+                max_completion_tokens: 8192,
                 top_p: 1,
                 stream: true,
-                reasoning_effort: "high",
                 stop: null,
-                ...(validTools && { tools: validTools }),
-                service_tier: "auto"
+                ...(validTools && { tools: validTools })
             });
 
             let toolCalls = {};
