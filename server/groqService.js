@@ -11,79 +11,101 @@ const groq = new Groq({
     apiKey: config.groqApiKey
 });
 
-// FlowFlow document images directory
-const FLOWFLOW_IMAGES_DIR = path.join(process.cwd(), 'public/flowflow-images');
+// FlowFlow documents directory
+const FLOWFLOW_DOCS_DIR = path.join(process.cwd(), 'documents/flowflow');
 
 /**
- * Load relevant images for FlowFlow based on query keywords
+ * Load images directly from DOCX files based on query keywords
+ * Uses JSZip to extract images in real-time
  * @param {string} query - User query
  * @param {number} maxImages - Maximum images to return
- * @returns {Array} Array of {id, base64, mimeType}
+ * @returns {Promise<Array>} Array of {id, base64, mimeType, source}
  */
-function loadFlowFlowImages(query, maxImages = 3) {
+async function loadDocxImagesForQuery(query, maxImages = 3) {
     try {
-        const indexPath = path.join(FLOWFLOW_IMAGES_DIR, 'index.json');
-        if (!fs.existsSync(indexPath)) return [];
-
-        const index = JSON.parse(fs.readFileSync(indexPath, 'utf-8'));
+        const JSZip = (await import('jszip')).default;
         const queryLower = query.toLowerCase();
 
-        // Keywords to image mapping
-        const keywordMappings = [
-            { keywords: ['logo', 'โลโก้', 'axons', 'brand', 'branding'], source: '_AXIO_Design_System___Foundation', range: [10, 15] },
-            { keywords: ['color', 'สี', 'palette', 'primary', 'secondary'], source: '_AXIO_Design_System___Foundation', range: [20, 35] },
-            { keywords: ['typography', 'font', 'ฟอนต์', 'ตัวอักษร'], source: '_AXIO_Design_System___Foundation', range: [11, 11] },
-            { keywords: ['icon', 'ไอคอน'], source: '_List_of_System_Icon', range: [1, 50] },
-            { keywords: ['button', 'ปุ่ม'], source: '_Component_List', range: [1, 30] },
-            { keywords: ['input', 'text field', 'ช่องกรอก'], source: '_Component_List', range: [30, 60] },
-            { keywords: ['card', 'การ์ด'], source: '_Component_List', range: [100, 130] },
-            { keywords: ['modal', 'dialog', 'popup'], source: '_Component_List', range: [150, 180] },
+        // Map keywords to relevant document files and image ranges
+        const docMappings = [
+            {
+                keywords: ['logo', 'โลโก้', 'axons', 'brand', 'branding', 'foundation', 'color', 'สี', 'typography', 'font'],
+                file: '_AXIO Design System - Foundation.docx',
+                imageRange: [1, 20] // First 20 images
+            },
+            {
+                keywords: ['component', 'button', 'ปุ่ม', 'input', 'card', 'modal', 'dialog', 'table', 'form'],
+                file: '_Component List.docx',
+                imageRange: [1, 15]
+            },
+            {
+                keywords: ['icon', 'ไอคอน', 'symbol'],
+                file: '_List of System Icon.docx',
+                imageRange: [1, 30]
+            },
+            {
+                keywords: ['template', 'pattern', 'หน้า', 'layout'],
+                file: '_List of Design Template or Pattern.docx',
+                imageRange: [1, 10]
+            }
         ];
 
-        let targetImages = [];
-
-        // Find matching keywords
-        for (const mapping of keywordMappings) {
+        // Find matching document
+        let targetDoc = null;
+        for (const mapping of docMappings) {
             if (mapping.keywords.some(kw => queryLower.includes(kw))) {
-                const [start, end] = mapping.range;
-                for (let i = start; i <= end && targetImages.length < maxImages; i++) {
-                    const imgId = `${mapping.source}_img_${i}`;
-                    if (index[imgId]) {
-                        targetImages.push(imgId);
-                    }
-                }
-                break; // Use first matching keyword group
+                targetDoc = mapping;
+                break;
             }
         }
 
-        // If no specific match, return first few foundation images
-        if (targetImages.length === 0) {
-            targetImages = Object.keys(index).slice(0, maxImages);
+        // Default to Foundation document
+        if (!targetDoc) {
+            targetDoc = docMappings[0];
         }
 
-        // Load actual images
+        const docPath = path.join(FLOWFLOW_DOCS_DIR, targetDoc.file);
+        if (!fs.existsSync(docPath)) {
+            console.log(`📄 FlowFlow: Document not found: ${targetDoc.file}`);
+            return [];
+        }
+
+        console.log(`📄 FlowFlow: Reading ${targetDoc.file} for images...`);
+
+        // Read DOCX and extract images
+        const buffer = fs.readFileSync(docPath);
+        const zip = await JSZip.loadAsync(buffer);
+
+        // Get media files from DOCX
+        const mediaFiles = Object.keys(zip.files)
+            .filter(f => f.startsWith('word/media/'))
+            .sort();
+
+        const [startRange, endRange] = targetDoc.imageRange;
         const images = [];
-        for (const imgId of targetImages.slice(0, maxImages)) {
-            const info = index[imgId];
-            if (!info) continue;
 
-            const ext = info.contentType?.split('/')[1] || 'png';
-            const imgPath = path.join(FLOWFLOW_IMAGES_DIR, `${imgId}.${ext}`);
+        for (let i = startRange - 1; i < Math.min(endRange, mediaFiles.length) && images.length < maxImages; i++) {
+            const file = mediaFiles[i];
+            if (!file) continue;
 
-            if (fs.existsSync(imgPath)) {
-                const base64 = fs.readFileSync(imgPath).toString('base64');
-                images.push({
-                    id: imgId,
-                    base64,
-                    mimeType: info.contentType || 'image/png'
-                });
-            }
+            const content = await zip.files[file].async('base64');
+            const ext = file.split('.').pop();
+            const mimeType = ext === 'png' ? 'image/png' :
+                ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' :
+                    'image/' + ext;
+
+            images.push({
+                id: `${targetDoc.file}_img_${i + 1}`,
+                base64: content,
+                mimeType,
+                source: targetDoc.file
+            });
         }
 
-        console.log(`🖼️ FlowFlow: Loaded ${images.length} relevant images for query`);
+        console.log(`🖼️ FlowFlow: Extracted ${images.length} images from ${targetDoc.file}`);
         return images;
     } catch (error) {
-        console.error('Error loading FlowFlow images:', error);
+        console.error('Error loading DOCX images:', error);
         return [];
     }
 }
@@ -100,7 +122,7 @@ function loadFlowFlowImages(query, maxImages = 3) {
  */
 export async function* generateGroqResponseStream(userQuery, searchResults, fileData = null, location = null, aiId = 'baobao', history = [], tools = [], toolExecutor = null) {
     try {
-        // Build context from Supabase Vector Search for all AIs
+        // Build context from Supabase Vector Search for all AIs (except FlowFlow which uses direct DOCX reading)
         let context = '';
 
         // Skip vector search for casual greetings and simple messages
@@ -114,7 +136,11 @@ export async function* generateGroqResponseStream(userQuery, searchResults, file
 
         const isCasualMessage = casualPatterns.some(pattern => pattern.test(userQuery.trim()));
 
-        if (isCasualMessage) {
+        // FlowFlow: Skip vector search entirely - use direct DOCX reading with vision
+        if (aiId === 'flowflow') {
+            console.log(`📄 FlowFlow: Using direct DOCX reading (no vector database)`);
+            context = ''; // Will be handled by vision with images
+        } else if (isCasualMessage) {
             console.log(`💬 ${aiId}: Casual message detected, skipping vector search`);
             context = '';
         } else {
@@ -281,39 +307,32 @@ ${fileContext}
             })
         ];
 
-        // For FlowFlow with vision, only load images when query is about visual content
+        // For FlowFlow: Always load images from DOCX files with vision/OCR
         if (aiId === 'flowflow') {
-            const queryLower = userQuery.toLowerCase();
-            const isVisualQuery = /logo|icon|รูป|ภาพ|color|สี|button|component|branding/.test(queryLower);
+            // Load images directly from DOCX files
+            const relevantImages = await loadDocxImagesForQuery(userQuery, 3);
 
-            if (isVisualQuery) {
-                const relevantImages = loadFlowFlowImages(userQuery, 3);
+            if (relevantImages.length > 0) {
+                // Build multimodal content for Llama 4 vision
+                const userContent = [
+                    { type: 'text', text: currentMessageText + '\n\nวิเคราะห์รูปภาพที่แนบมาและตอบคำถามจากข้อมูลในรูป' }
+                ];
 
-                if (relevantImages.length > 0) {
-                    // Build multimodal content for Llama 4 vision
-                    const userContent = [
-                        { type: 'text', text: currentMessageText }
-                    ];
-
-                    // Add images
-                    for (const img of relevantImages) {
-                        userContent.push({
-                            type: 'image_url',
-                            image_url: {
-                                url: `data:${img.mimeType};base64,${img.base64}`
-                            }
-                        });
-                    }
-
-                    currentMessages.push({ role: 'user', content: userContent });
-                    console.log(`🖼️ FlowFlow: Added ${relevantImages.length} images to vision request`);
-                } else {
-                    currentMessages.push({ role: 'user', content: currentMessageText });
+                // Add images
+                for (const img of relevantImages) {
+                    userContent.push({
+                        type: 'image_url',
+                        image_url: {
+                            url: `data:${img.mimeType};base64,${img.base64}`
+                        }
+                    });
                 }
+
+                currentMessages.push({ role: 'user', content: userContent });
+                console.log(`🖼️ FlowFlow: Added ${relevantImages.length} images from ${relevantImages[0]?.source || 'DOCX'}`);
             } else {
-                // Non-visual query - just use text
                 currentMessages.push({ role: 'user', content: currentMessageText });
-                console.log(`💬 FlowFlow: Text-only query (no images needed)`);
+                console.log(`💬 FlowFlow: No relevant images found, using text-only`);
             }
         } else {
             currentMessages.push({ role: 'user', content: currentMessageText });
