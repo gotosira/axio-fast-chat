@@ -193,14 +193,36 @@ export const FilePreview = ({ file, onClose }) => {
         }
     };
 
-    const handleDownload = (e) => {
+    const handleDownload = async (e) => {
         e.stopPropagation();
-        const link = document.createElement('a');
-        link.href = `data:${file.mimeType};base64,${file.data}`;
-        link.download = file.name;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+
+        try {
+            if (file.isUrl) {
+                // For URL-based images, fetch and download
+                const response = await fetch(file.data);
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = file.name || 'download';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            } else {
+                // For base64 data
+                const link = document.createElement('a');
+                link.href = `data:${file.mimeType};base64,${file.data}`;
+                link.download = file.name;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        } catch (error) {
+            console.error('Download failed:', error);
+            // Fallback: open in new tab
+            window.open(file.isUrl ? file.data : `data:${file.mimeType};base64,${file.data}`, '_blank');
+        }
     };
 
     return (

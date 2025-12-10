@@ -511,8 +511,12 @@ const ImageComponent = ({ src, alt, ...props }) => {
     if (e.target.closest('.edit-btn')) return;
 
     if (onPreview) {
+      // Extract filename from URL or use alt text
+      const urlFilename = src ? src.split('/').pop() : null;
+      const filename = urlFilename || alt || 'Image.png';
+
       onPreview({
-        name: alt || 'Image',
+        name: filename,
         mimeType: 'image/png',
         data: src,
         isUrl: true
