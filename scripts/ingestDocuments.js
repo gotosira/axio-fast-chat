@@ -17,7 +17,7 @@ const DOCUMENTS_DIR = process.argv[2]
     : path.join(process.cwd(), 'documents/flowflow');
 const AI_ID = 'flowflow';
 
-// Helper: Read file content
+// Helper: Read file content (text only - images served separately via lazy loading)
 async function readFileContent(filePath) {
     const ext = path.extname(filePath).toLowerCase();
     try {
@@ -25,6 +25,7 @@ async function readFileContent(filePath) {
             return await fs.readFile(filePath, 'utf-8');
         } else if (ext === '.docx') {
             const buffer = await fs.readFile(filePath);
+            // Use extractRawText for text (images loaded on-demand via /api/images)
             const result = await mammoth.extractRawText({ buffer });
             return result.value;
         }

@@ -249,6 +249,10 @@ const FLOWFLOW_SYSTEM_PROMPT = `คุณคือ FlowFlow ปลาหมึ�
 - Icons: https://axio-react.axonstech.com/docs/icons/
 - All Components: https://axio-react.axonstech.com/docs
 
+**🖼️ Branding & Logos (อยู่ใน Foundation):**
+- AXONS Logo และ Brand Assets อยู่ในเอกสาร Foundation แต่รูปภาพไม่สามารถแสดงโดยตรงได้
+- ถ้า user ถามหา Logo ให้ตอบว่า: "Logo AXONS อยู่ในเอกสาร AXIO Design System - Foundation สามารถดูได้ที่ Figma: https://www.figma.com/design/TvOoz41aM5FWLQuTlEvrzA/Design-System-Foundation (หัวข้อ BRANDING)"
+
 **Figma Design System:**
 - Main Figma File: https://www.figma.com/design/TvOoz41aM5FWLQuTlEvrzA/Design-System-Foundation
 
