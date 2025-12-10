@@ -621,7 +621,27 @@ const MessageRow = memo(({ message, onPreview, onEditImage, aiContext }) => {
                 code: CodeBlock,
                 blockquote: ThinkingBlock,
                 img: ImageComponent,
-                a: ({ node, ...props }) => <a target="_blank" rel="noopener noreferrer" {...props} />,
+                // Auto-render image links as actual images
+                a: ({ href, children, ...props }) => {
+                  // Check if the link is to an image file
+                  const isImageLink = href && (
+                    href.match(/\.(png|jpg|jpeg|gif|webp)$/i) ||
+                    href.includes('/flowflow-images/') ||
+                    href.includes('/branding/') ||
+                    href.includes('/generated-images/')
+                  );
+
+                  if (isImageLink) {
+                    return (
+                      <ImageComponent
+                        src={href}
+                        alt={typeof children === 'string' ? children : 'Image'}
+                      />
+                    );
+                  }
+
+                  return <a href={href} target="_blank" rel="noopener noreferrer" {...props}>{children}</a>;
+                },
                 ...TableComponents
               }}
             >
