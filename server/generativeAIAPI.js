@@ -910,10 +910,7 @@ app.post('/api/chat', async (req, res) => {
         let searchResults;
 
         if (ai_id === 'flowflow') {
-            // Ensure cache is initialized
-            if (!isImageCacheInitialized) {
-                await initializeFlowFlowImageCache();
-            }
+            // Images are now loaded on-demand (lazy loading)
 
             // Prepare query for search
             const queryLower = message.toLowerCase();
