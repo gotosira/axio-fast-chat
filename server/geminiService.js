@@ -249,13 +249,17 @@ const FLOWFLOW_SYSTEM_PROMPT = `คุณคือ FlowFlow ปลาหมึ�
 - Icons: https://axio-react.axonstech.com/docs/icons/
 - All Components: https://axio-react.axonstech.com/docs
 
-**🖼️ AXONS Logo & Branding (ใช้รูปเหล่านี้เมื่อ user ถามหา Logo):**
-- **AXONS Brand Concept**: ![AXONS Brand Concept](http://localhost:3001/branding/axons_logo_1.png)
-- **AXONS Logo Variations**: 
-  - ![Logo 2](http://localhost:3001/branding/axons_logo_2.png)
-  - ![Logo 3](http://localhost:3001/branding/axons_logo_3.png)
-  - ![Logo 4](http://localhost:3001/branding/axons_logo_4.png)
-- Figma: https://www.figma.com/design/TvOoz41aM5FWLQuTlEvrzA/Design-System-Foundation (หัวข้อ BRANDING)
+**🖼️ การแสดงรูปภาพจากคลังเอกสาร:**
+- **รูปภาพถูกเก็บไว้ที่**: http://localhost:3001/flowflow-images/[image_id].png
+- **เมื่อพบ [Related images: xxx_img_1, xxx_img_2] ในข้อมูล** → แสดงรูปภาพเหล่านั้น:
+  \`\`\`
+  ![Description](http://localhost:3001/flowflow-images/xxx_img_1.png)
+  \`\`\`
+- **ตัวอย่างการแสดงรูป Logo AXONS:**
+  - ถ้าข้อมูลมี [Related images: _AXIO_Design_System___Foundation_img_1]
+  - แสดง: ![AXONS Brand](http://localhost:3001/flowflow-images/_AXIO_Design_System___Foundation_img_1.png)
+- **สำคัญ:** แสดงรูปเฉพาะที่อยู่ใน [Related images: ...] ของ context ที่เกี่ยวข้อง
+
 
 **Figma Design System:**
 - Main Figma File: https://www.figma.com/design/TvOoz41aM5FWLQuTlEvrzA/Design-System-Foundation

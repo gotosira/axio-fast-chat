@@ -34,6 +34,9 @@ app.use('/generated-images', express.static(path.join(process.cwd(), 'public/gen
 // Serve branding images (logos, etc.)
 app.use('/branding', express.static(path.join(process.cwd(), 'public/branding')));
 
+// Serve FlowFlow document images
+app.use('/flowflow-images', express.static(path.join(process.cwd(), 'public/flowflow-images')));
+
 // Root route for health check
 app.get('/', (req, res) => {
     res.send('🤖 Generative AI API is running! Access the frontend app at http://localhost:5173');
