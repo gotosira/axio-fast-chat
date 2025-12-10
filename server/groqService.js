@@ -237,7 +237,9 @@ ${fileContext}
             modelName = "llama-3.3-70b-versatile";
         }
 
-        // Prepare messages array
+        // Prepare messages array with history
+        console.log(`📜 ${aiId}: Using ${history.length} messages from history`);
+
         let currentMessages = [
             { role: 'system', content: fullSystemInstruction },
             ...history.map(msg => ({
@@ -246,30 +248,39 @@ ${fileContext}
             }))
         ];
 
-        // For FlowFlow with vision, load relevant images and add to user message
+        // For FlowFlow with vision, only load images when query is about visual content
         if (aiId === 'flowflow') {
-            const relevantImages = loadFlowFlowImages(userQuery, 3);
+            const queryLower = userQuery.toLowerCase();
+            const isVisualQuery = /logo|icon|รูป|ภาพ|color|สี|button|component|branding/.test(queryLower);
 
-            if (relevantImages.length > 0) {
-                // Build multimodal content for Llama 4 vision
-                const userContent = [
-                    { type: 'text', text: currentMessageText }
-                ];
+            if (isVisualQuery) {
+                const relevantImages = loadFlowFlowImages(userQuery, 3);
 
-                // Add images
-                for (const img of relevantImages) {
-                    userContent.push({
-                        type: 'image_url',
-                        image_url: {
-                            url: `data:${img.mimeType};base64,${img.base64}`
-                        }
-                    });
+                if (relevantImages.length > 0) {
+                    // Build multimodal content for Llama 4 vision
+                    const userContent = [
+                        { type: 'text', text: currentMessageText }
+                    ];
+
+                    // Add images
+                    for (const img of relevantImages) {
+                        userContent.push({
+                            type: 'image_url',
+                            image_url: {
+                                url: `data:${img.mimeType};base64,${img.base64}`
+                            }
+                        });
+                    }
+
+                    currentMessages.push({ role: 'user', content: userContent });
+                    console.log(`🖼️ FlowFlow: Added ${relevantImages.length} images to vision request`);
+                } else {
+                    currentMessages.push({ role: 'user', content: currentMessageText });
                 }
-
-                currentMessages.push({ role: 'user', content: userContent });
-                console.log(`🖼️ FlowFlow: Added ${relevantImages.length} images to vision request`);
             } else {
+                // Non-visual query - just use text
                 currentMessages.push({ role: 'user', content: currentMessageText });
+                console.log(`💬 FlowFlow: Text-only query (no images needed)`);
             }
         } else {
             currentMessages.push({ role: 'user', content: currentMessageText });
