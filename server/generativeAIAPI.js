@@ -1499,11 +1499,11 @@ app.post('/api/generate-image', async (req, res) => {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
     app.listen(PORT, () => {
         console.log(`🤖 Generative AI API running on http://localhost:${PORT}`);
-        console.log(`📚 Knowledge bases:`);
-        console.log(`   - BaoBao: ${getKnowledgeBasePath('baobao')}`);
-        console.log(`   - FlowFlow: ${getKnowledgeBasePath('flowflow')}`);
-        console.log(`   - DeeDee: ${getKnowledgeBasePath('deedee')}`);
-        console.log(`   - PungPung: ${getKnowledgeBasePath('pungpung')}`);
+        console.log(`📚 Knowledge bases: Supabase Vector Database`);
+        console.log(`   - BaoBao (ai_id: baobao)`);
+        console.log(`   - FlowFlow (ai_id: flowflow)`);
+        console.log(`   - DeeDee (ai_id: deedee)`);
+        console.log(`   - PungPung (ai_id: pungpung)`);
         ensureSchema();
         initMcpServers();
     });

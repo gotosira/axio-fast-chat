@@ -21,76 +21,59 @@ const groq = new Groq({
  */
 export async function* generateGroqResponseStream(userQuery, searchResults, fileData = null, location = null, aiId = 'baobao', history = [], tools = [], toolExecutor = null) {
     try {
-        // Build context
+        // Build context from Supabase Vector Search for all AIs
         let context = '';
 
-        // Special handling for FlowFlow (Supabase Vector Search)
-        if (aiId === 'flowflow') {
-            console.log('🌊 FlowFlow (Groq): Generating embedding for query...');
-            const ai = new GoogleGenAI({ apiKey: config.geminiApiKey });
+        console.log(`🔍 ${aiId}: Searching Supabase vector store...`);
+        const ai = new GoogleGenAI({ apiKey: config.geminiApiKey });
 
-            try {
-                // Check if Supabase is available
-                if (!supabase) {
-                    console.warn('⚠️ Supabase not initialized, skipping vector search');
-                    context = '\n\n**ไม่สามารถเชื่อมต่อ Supabase ได้**\n\n';
-                } else {
-                    // 1. Generate Embedding
-                    const embeddingResult = await ai.models.embedContent({
-                        model: "text-embedding-004",
-                        contents: [{ parts: [{ text: userQuery }] }]
-                    });
-                    const queryEmbedding = embeddingResult.embeddings[0].values;
-
-                    // 2. Search Supabase with timeout (short timeout for speed)
-                    console.log('🔍 FlowFlow (Groq): Searching Supabase vector store...');
-
-                    // Create a short timeout promise for faster response
-                    const timeoutPromise = new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('Vector search timeout')), 5000)
-                    );
-
-                    // Race between query and timeout - use minimal params for speed
-                    const { data: documents, error } = await Promise.race([
-                        supabase.rpc('match_documents', {
-                            query_embedding: queryEmbedding,
-                            match_threshold: 0.5,
-                            match_count: 5
-                        }),
-                        timeoutPromise
-                    ]);
-
-                    if (error) throw error;
-
-                    console.log(`📚 FlowFlow (Groq): Found ${documents?.length || 0} relevant chunks.`);
-
-                    if (documents && documents.length > 0) {
-                        context = '\n\n**📚 ข้อมูลจาก Design System:**\n\n';
-                        context += documents.map(doc => `${doc.content}`).join('\n\n');
-                    } else {
-                        context = '';
-                    }
-                }
-            } catch (err) {
-                console.error('❌ FlowFlow (Groq) Vector Search Error:', err.message || err);
-                // Don't block - just proceed without context
+        try {
+            // Check if Supabase is available
+            if (!supabase) {
+                console.warn('⚠️ Supabase not initialized, skipping vector search');
                 context = '';
-            }
-        }
-        // Standard local file search for other AIs
-        else if (searchResults && searchResults.length > 0) {
-            context = '\n\n**📚 ข้อมูลจากคลังเอกสาร (ใช้ข้อมูลนี้ก่อนเสมอ):**\n\n';
-            searchResults.slice(0, 3).forEach((result) => {
-                context += `### ${result.category}\n`;
-                if (result.excerpts && result.excerpts.length > 0) {
-                    result.excerpts.slice(0, 2).forEach(excerpt => {
-                        context += `${excerpt}\n\n`;
-                    });
+            } else {
+                // 1. Generate Embedding
+                const embeddingResult = await ai.models.embedContent({
+                    model: "text-embedding-004",
+                    contents: [{ parts: [{ text: userQuery }] }]
+                });
+                const queryEmbedding = embeddingResult.embeddings[0].values;
+
+                // 2. Search Supabase with timeout (short timeout for speed)
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Vector search timeout')), 5000)
+                );
+
+                // Race between query and timeout - filter by ai_id using RPC with filter
+                const { data: documents, error } = await Promise.race([
+                    supabase.rpc('match_documents', {
+                        query_embedding: queryEmbedding,
+                        match_threshold: 0.4,
+                        match_count: 8
+                    }),
+                    timeoutPromise
+                ]);
+
+                if (error) throw error;
+
+                // Filter results by ai_id in metadata
+                const filteredDocs = documents?.filter(doc =>
+                    doc.metadata?.ai_id === aiId
+                ) || [];
+
+                console.log(`📚 ${aiId}: Found ${filteredDocs.length} relevant chunks.`);
+
+                if (filteredDocs.length > 0) {
+                    context = '\n\n**📚 ข้อมูลจากคลังความรู้:**\n\n';
+                    context += filteredDocs.map(doc => `${doc.content}`).join('\n\n');
+                } else {
+                    context = '';
                 }
-            });
-            context += `\n**หมายเหตุ:** ให้ตอบจากข้อมูลข้างต้นก่อนเสมอ ถ้าข้อมูลไม่เพียงพอจริงๆ ถึงจะค้นหาเพิ่มจาก Google\n`;
-        } else {
-            context = '\n\n**ไม่พบข้อมูลในคลังเอกสาร - สามารถค้นหาข้อมูลจาก Google ได้**\n\n';
+            }
+        } catch (err) {
+            console.error(`❌ ${aiId} Vector Search Error:`, err.message || err);
+            context = '';
         }
 
         // Add location context if available
