@@ -134,17 +134,17 @@ export async function* generateGroqResponseStream(userQuery, searchResults, file
                     });
                     const queryEmbedding = embeddingResult.embeddings[0].values;
 
-                    // 2. Search Supabase with timeout (short timeout for speed)
+                    // 2. Search Supabase with timeout (15s for larger datasets)
                     const timeoutPromise = new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('Vector search timeout')), 5000)
+                        setTimeout(() => reject(new Error('Vector search timeout')), 15000)
                     );
 
-                    // Race between query and timeout - filter by ai_id using RPC with filter
+                    // Race between query and timeout
                     const { data: documents, error } = await Promise.race([
                         supabase.rpc('match_documents', {
                             query_embedding: queryEmbedding,
                             match_threshold: 0.4,
-                            match_count: 8
+                            match_count: 20  // Get more results to filter from
                         }),
                         timeoutPromise
                     ]);
@@ -154,9 +154,9 @@ export async function* generateGroqResponseStream(userQuery, searchResults, file
                     // Filter results by ai_id in metadata
                     const filteredDocs = documents?.filter(doc =>
                         doc.metadata?.ai_id === aiId
-                    ) || [];
+                    ).slice(0, 5) || [];  // Take top 5 after filtering
 
-                    console.log(`📚 ${aiId}: Found ${filteredDocs.length} relevant chunks.`);
+                    console.log(`📚 ${aiId}: Found ${filteredDocs.length} relevant chunks (from ${documents?.length || 0} total).`);
 
                     if (filteredDocs.length > 0) {
                         context = '\n\n**📚 ข้อมูลจากคลังความรู้:**\n\n';
