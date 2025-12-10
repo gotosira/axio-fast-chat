@@ -53,50 +53,65 @@ const getKnowledgeBasePath = (aiId = 'baobao') => {
 // Global cache for FlowFlow images
 const flowflowImageCache = new Map();
 let isImageCacheInitialized = false;
+let imageExtractionPromise = null;
 
-// Initialize image cache from FlowFlow documents
-async function initializeFlowFlowImageCache() {
-    if (isImageCacheInitialized) return;
+// Extract a single image from documents on-demand
+async function extractImageOnDemand(imageId) {
+    // Check if already in cache
+    if (flowflowImageCache.has(imageId)) {
+        return flowflowImageCache.get(imageId);
+    }
 
-    console.log('🖼️ Initializing FlowFlow image cache...');
-    // Force local load to get images from DOCX files
+    console.log(`🖼️ Extracting image on-demand: ${imageId}`);
+
+    // Load documents and find the specific image
     const documents = await loadAllDocuments('flowflow', { forceLocal: true });
-    const regex = /^\[(.*?)\]:\s*<?(data:image\/([^;]+);base64,([^>\n\r]+))>?/gm;
+    const regex = new RegExp(`^\\[${imageId}\\]:\\s*<?(data:image\\/([^;]+);base64,([^>\\n\\r]+))>?`, 'm');
 
     for (const doc of documents) {
-        let match;
-        // Reset lastIndex for each document content
-        while ((match = regex.exec(doc.content)) !== null) {
-            const imageId = match[1];
-            const fullDataUrl = match[2];
-            const mimeType = match[3];
-            const base64Data = match[4];
+        const match = regex.exec(doc.content);
+        if (match) {
+            const mimeType = match[2];
+            const base64Data = match[3];
 
-            flowflowImageCache.set(imageId, {
+            const imageData = {
                 mimeType,
                 data: Buffer.from(base64Data, 'base64')
-            });
+            };
+
+            flowflowImageCache.set(imageId, imageData);
+            console.log(`✅ Image extracted: ${imageId}`);
+            return imageData;
         }
     }
-    isImageCacheInitialized = true;
-    console.log(`✅ FlowFlow image cache initialized with ${flowflowImageCache.size} images`);
+
+    return null;
 }
 
-// Serve FlowFlow images
-app.get('/api/images/:imageId', (req, res) => {
+// Serve FlowFlow images - lazy loading
+app.get('/api/images/:imageId', async (req, res) => {
     const { imageId } = req.params;
-    const image = flowflowImageCache.get(imageId);
+
+    // Try cache first
+    let image = flowflowImageCache.get(imageId);
+
+    // If not in cache, extract on-demand
+    if (!image) {
+        image = await extractImageOnDemand(imageId);
+    }
 
     if (image) {
         res.setHeader('Content-Type', `image/${image.mimeType}`);
+        res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
         res.send(image.data);
     } else {
         res.status(404).send('Image not found');
     }
 });
 
-// Initialize cache on server start
-initializeFlowFlowImageCache();
+// No longer initialize cache on server start - lazy loading instead
+console.log('🖼️ Image cache: Using lazy loading (images extracted on-demand)');
+
 
 /**
  * Read all documents from the knowledge base for specific AI
