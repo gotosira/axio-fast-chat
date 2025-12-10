@@ -165,6 +165,25 @@ export async function* generateGroqResponseStream(userQuery, searchResults, file
                         context += filteredDocs.map(doc =>
                             doc.content.substring(0, maxChunkLen) + (doc.content.length > maxChunkLen ? '...' : '')
                         ).join('\n\n');
+
+                        // For FlowFlow: Extract relevant image IDs from metadata
+                        if (aiId === 'flowflow') {
+                            const imageIds = [];
+                            for (const doc of filteredDocs) {
+                                if (doc.metadata?.images && Array.isArray(doc.metadata.images)) {
+                                    imageIds.push(...doc.metadata.images);
+                                }
+                            }
+                            if (imageIds.length > 0) {
+                                // Limit to 3 images
+                                const uniqueImages = [...new Set(imageIds)].slice(0, 3);
+                                context += '\n\n**🖼️ รูปภาพประกอบที่เกี่ยวข้อง:**\n';
+                                uniqueImages.forEach(imgId => {
+                                    const ext = 'png';
+                                    context += `- http://localhost:3001/flowflow-images/${imgId}.${ext}\n`;
+                                });
+                            }
+                        }
                     } else {
                         context = '';
                     }
