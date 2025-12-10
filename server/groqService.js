@@ -101,14 +101,20 @@ export async function* generateGroqResponseStream(userQuery, searchResults, file
         // Get the appropriate system prompt
         const systemPrompt = getSystemPrompt(aiId);
 
-        // Streaming instructions - optimized for speed
+        // Streaming instructions - think first, then answer
         const streamingInstructions = `
-**คำสั่งสำคัญ - ตอบเร็วที่สุด:**
-1. **เริ่มตอบทันที** - ห้ามคิดนาน ส่งคำตอบเลย
-2. **กระบวนการคิด** (ถ้ามี) ต้องสั้นมาก 1 ประโยค แล้วตอบเลย:
-   > [คิดสั้นๆ]
+**คำสั่งสำคัญ - คิดก่อนตอบ:**
+
+1. **กระบวนการคิด (ต้องมีเสมอ):**
+   > **วิเคราะห์:** [วิเคราะห์ว่า user ต้องการอะไร - Template/หน้า หรือ Icon? Component หรือ Foundation?]
    
-   [คำตอบ]
+   แล้วค่อยตอบ
+
+2. **ตัวอย่างการวิเคราะห์:**
+   - "หน้า Login" → ต้องการ **Template** (ไม่ใช่ Icon!)
+   - "Login Icon" → ต้องการ **Icon**
+   - "สี Primary" → ต้องการ **Foundation**
+   - "Button" → ต้องการ **Component**
 
 3. **Minimal Design:** ใช้ \`inline code\` สำหรับชื่อตัวแปร/Token/Hex Code
 `;
