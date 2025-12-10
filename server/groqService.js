@@ -24,29 +24,45 @@ const FLOWFLOW_DOCS_DIR = path.join(process.cwd(), 'documents/flowflow');
 async function loadDocxImagesForQuery(query, maxImages = 3) {
     try {
         const JSZip = (await import('jszip')).default;
+        const mammoth = (await import('mammoth')).default;
         const queryLower = query.toLowerCase();
 
         // Map keywords to relevant document files and image ranges
         const docMappings = [
             {
-                keywords: ['logo', 'โลโก้', 'axons', 'brand', 'branding', 'foundation', 'color', 'สี', 'typography', 'font'],
+                keywords: ['logo', 'โลโก้', 'axons', 'brand', 'branding'],
                 file: '_AXIO Design System - Foundation.docx',
-                imageRange: [1, 20] // First 20 images
+                imageRange: [10, 15] // Logo section
+            },
+            {
+                keywords: ['color', 'สี', 'palette', 'primary'],
+                file: '_AXIO Design System - Foundation.docx',
+                imageRange: [20, 30] // Color section
+            },
+            {
+                keywords: ['grid', 'layout', 'spacing', 'ระยะห่าง', 'column', 'คอลัมน์'],
+                file: '_AXIO Design System - Foundation.docx',
+                imageRange: [30, 45] // Grid/Layout section
+            },
+            {
+                keywords: ['typography', 'font', 'ฟอนต์', 'ตัวอักษร', 'heading'],
+                file: '_AXIO Design System - Foundation.docx',
+                imageRange: [15, 25] // Typography section
             },
             {
                 keywords: ['component', 'button', 'ปุ่ม', 'input', 'card', 'modal', 'dialog', 'table', 'form'],
                 file: '_Component List.docx',
-                imageRange: [1, 15]
+                imageRange: [1, 20]
             },
             {
                 keywords: ['icon', 'ไอคอน', 'symbol'],
                 file: '_List of System Icon.docx',
-                imageRange: [1, 30]
+                imageRange: [1, 40]
             },
             {
-                keywords: ['template', 'pattern', 'หน้า', 'layout'],
+                keywords: ['template', 'pattern', 'หน้า', 'page'],
                 file: '_List of Design Template or Pattern.docx',
-                imageRange: [1, 10]
+                imageRange: [1, 15]
             }
         ];
 
@@ -67,14 +83,24 @@ async function loadDocxImagesForQuery(query, maxImages = 3) {
         const docPath = path.join(FLOWFLOW_DOCS_DIR, targetDoc.file);
         if (!fs.existsSync(docPath)) {
             console.log(`📄 FlowFlow: Document not found: ${targetDoc.file}`);
-            return [];
+            return { images: [], text: '' };
         }
 
-        console.log(`📄 FlowFlow: Reading ${targetDoc.file} for images...`);
+        console.log(`📄 FlowFlow: Reading ${targetDoc.file} for query "${query}"...`);
 
-        // Read DOCX and extract images
+        // Read DOCX
         const buffer = fs.readFileSync(docPath);
         const zip = await JSZip.loadAsync(buffer);
+
+        // Extract text content using mammoth
+        let textContent = '';
+        try {
+            const textResult = await mammoth.extractRawText({ buffer });
+            // Take relevant portion of text (first 2000 chars)
+            textContent = textResult.value.substring(0, 2000);
+        } catch (e) {
+            console.warn('Failed to extract text:', e.message);
+        }
 
         // Get media files from DOCX
         const mediaFiles = Object.keys(zip.files)
@@ -102,11 +128,11 @@ async function loadDocxImagesForQuery(query, maxImages = 3) {
             });
         }
 
-        console.log(`🖼️ FlowFlow: Extracted ${images.length} images from ${targetDoc.file}`);
-        return images;
+        console.log(`🖼️ FlowFlow: Extracted ${images.length} images + ${textContent.length} chars text`);
+        return { images, text: textContent };
     } catch (error) {
-        console.error('Error loading DOCX images:', error);
-        return [];
+        console.error('Error loading DOCX:', error);
+        return { images: [], text: '' };
     }
 }
 
@@ -307,19 +333,26 @@ ${fileContext}
             })
         ];
 
-        // For FlowFlow: Always load images from DOCX files with vision/OCR
+        // For FlowFlow: Always load content from DOCX files with vision/OCR
         if (aiId === 'flowflow') {
-            // Load images directly from DOCX files
-            const relevantImages = await loadDocxImagesForQuery(userQuery, 3);
+            // Load images + text directly from DOCX files
+            const docContent = await loadDocxImagesForQuery(userQuery, 3);
+            const { images, text } = docContent;
 
-            if (relevantImages.length > 0) {
+            // Build message with text context from document
+            let messageWithContext = currentMessageText;
+            if (text) {
+                messageWithContext = `**📚 เนื้อหาจากเอกสาร:**\n${text}\n\n${currentMessageText}`;
+            }
+
+            if (images.length > 0) {
                 // Build multimodal content for Llama 4 vision
                 const userContent = [
-                    { type: 'text', text: currentMessageText + '\n\nวิเคราะห์รูปภาพที่แนบมาและตอบคำถามจากข้อมูลในรูป' }
+                    { type: 'text', text: messageWithContext + '\n\nวิเคราะห์รูปภาพที่แนบมาและตอบคำถามจากข้อมูลในรูปและเอกสาร' }
                 ];
 
                 // Add images
-                for (const img of relevantImages) {
+                for (const img of images) {
                     userContent.push({
                         type: 'image_url',
                         image_url: {
@@ -329,10 +362,14 @@ ${fileContext}
                 }
 
                 currentMessages.push({ role: 'user', content: userContent });
-                console.log(`🖼️ FlowFlow: Added ${relevantImages.length} images from ${relevantImages[0]?.source || 'DOCX'}`);
+                console.log(`🖼️ FlowFlow: Added ${images.length} images from ${images[0]?.source || 'DOCX'}`);
+            } else if (text) {
+                // No images but has text content
+                currentMessages.push({ role: 'user', content: messageWithContext });
+                console.log(`📝 FlowFlow: Using text content from DOCX`);
             } else {
                 currentMessages.push({ role: 'user', content: currentMessageText });
-                console.log(`💬 FlowFlow: No relevant images found, using text-only`);
+                console.log(`💬 FlowFlow: No document content found`);
             }
         } else {
             currentMessages.push({ role: 'user', content: currentMessageText });
