@@ -24,56 +24,72 @@ export async function* generateGroqResponseStream(userQuery, searchResults, file
         // Build context from Supabase Vector Search for all AIs
         let context = '';
 
-        console.log(`🔍 ${aiId}: Searching Supabase vector store...`);
-        const ai = new GoogleGenAI({ apiKey: config.geminiApiKey });
+        // Skip vector search for casual greetings and simple messages
+        const casualPatterns = [
+            /^(สวัสดี|หวัดดี|ดีจ้า|ดีครับ|ดีค่ะ|hello|hi|hey)/i,
+            /^(ขอบคุณ|thank|thanks)/i,
+            /^(ช่วยได้ไหม|ช่วยอะไรได้)/i,
+            /^(เป็นใคร|คุณคือใคร|แนะนำตัว)/i,
+            /^.{0,15}$/  // Very short messages (under 15 chars)
+        ];
 
-        try {
-            // Check if Supabase is available
-            if (!supabase) {
-                console.warn('⚠️ Supabase not initialized, skipping vector search');
-                context = '';
-            } else {
-                // 1. Generate Embedding
-                const embeddingResult = await ai.models.embedContent({
-                    model: "text-embedding-004",
-                    contents: [{ parts: [{ text: userQuery }] }]
-                });
-                const queryEmbedding = embeddingResult.embeddings[0].values;
+        const isCasualMessage = casualPatterns.some(pattern => pattern.test(userQuery.trim()));
 
-                // 2. Search Supabase with timeout (short timeout for speed)
-                const timeoutPromise = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Vector search timeout')), 5000)
-                );
-
-                // Race between query and timeout - filter by ai_id using RPC with filter
-                const { data: documents, error } = await Promise.race([
-                    supabase.rpc('match_documents', {
-                        query_embedding: queryEmbedding,
-                        match_threshold: 0.4,
-                        match_count: 8
-                    }),
-                    timeoutPromise
-                ]);
-
-                if (error) throw error;
-
-                // Filter results by ai_id in metadata
-                const filteredDocs = documents?.filter(doc =>
-                    doc.metadata?.ai_id === aiId
-                ) || [];
-
-                console.log(`📚 ${aiId}: Found ${filteredDocs.length} relevant chunks.`);
-
-                if (filteredDocs.length > 0) {
-                    context = '\n\n**📚 ข้อมูลจากคลังความรู้:**\n\n';
-                    context += filteredDocs.map(doc => `${doc.content}`).join('\n\n');
-                } else {
-                    context = '';
-                }
-            }
-        } catch (err) {
-            console.error(`❌ ${aiId} Vector Search Error:`, err.message || err);
+        if (isCasualMessage) {
+            console.log(`💬 ${aiId}: Casual message detected, skipping vector search`);
             context = '';
+        } else {
+            console.log(`🔍 ${aiId}: Searching Supabase vector store...`);
+            const ai = new GoogleGenAI({ apiKey: config.geminiApiKey });
+
+            try {
+                // Check if Supabase is available
+                if (!supabase) {
+                    console.warn('⚠️ Supabase not initialized, skipping vector search');
+                    context = '';
+                } else {
+                    // 1. Generate Embedding
+                    const embeddingResult = await ai.models.embedContent({
+                        model: "text-embedding-004",
+                        contents: [{ parts: [{ text: userQuery }] }]
+                    });
+                    const queryEmbedding = embeddingResult.embeddings[0].values;
+
+                    // 2. Search Supabase with timeout (short timeout for speed)
+                    const timeoutPromise = new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error('Vector search timeout')), 5000)
+                    );
+
+                    // Race between query and timeout - filter by ai_id using RPC with filter
+                    const { data: documents, error } = await Promise.race([
+                        supabase.rpc('match_documents', {
+                            query_embedding: queryEmbedding,
+                            match_threshold: 0.4,
+                            match_count: 8
+                        }),
+                        timeoutPromise
+                    ]);
+
+                    if (error) throw error;
+
+                    // Filter results by ai_id in metadata
+                    const filteredDocs = documents?.filter(doc =>
+                        doc.metadata?.ai_id === aiId
+                    ) || [];
+
+                    console.log(`📚 ${aiId}: Found ${filteredDocs.length} relevant chunks.`);
+
+                    if (filteredDocs.length > 0) {
+                        context = '\n\n**📚 ข้อมูลจากคลังความรู้:**\n\n';
+                        context += filteredDocs.map(doc => `${doc.content}`).join('\n\n');
+                    } else {
+                        context = '';
+                    }
+                }
+            } catch (err) {
+                console.error(`❌ ${aiId} Vector Search Error:`, err.message || err);
+                context = '';
+            }
         }
 
         // Add location context if available
